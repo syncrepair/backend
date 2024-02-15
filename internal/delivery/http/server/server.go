@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/utils"
 	"github.com/rs/zerolog"
@@ -30,6 +31,7 @@ func New(cfg Config) *fiber.App {
 	})
 
 	app.Use(cors.New())
+	app.Use(recover.New())
 	app.Use(requestid.New(requestid.Config{
 		Next:       nil,
 		Header:     fiber.HeaderXRequestID,
