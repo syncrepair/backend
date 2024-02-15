@@ -7,6 +7,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/joho/godotenv v1.5.1
+	github.com/matoous/go-nanoid/v2 v2.0.0
 )
 
 require (

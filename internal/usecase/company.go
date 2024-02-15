@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"context"
-	"fmt"
+	"github.com/matoous/go-nanoid/v2"
+	"github.com/syncrepair/backend/internal/model"
 )
 
 type CompanyRepository interface {
-	Create(ctx context.Context) error
+	Create(ctx context.Context, company *model.Company) error
 }
 
 type CompanyUsecase struct {
@@ -19,10 +20,18 @@ func NewCompanyUsecase(repository CompanyRepository) *CompanyUsecase {
 	}
 }
 
-func (u *CompanyUsecase) Create(ctx context.Context) error {
-	fmt.Println("CompanyUsecase.Create")
+func (u *CompanyUsecase) Create(ctx context.Context, input *model.CompanyCreateInput) error {
+	id, err := gonanoid.New()
+	if err != nil {
+		return err
+	}
 
-	if err := u.repository.Create(ctx); err != nil {
+	company := &model.Company{
+		ID:   id,
+		Name: input.Name,
+	}
+
+	if err := u.repository.Create(ctx, company); err != nil {
 		return err
 	}
 
