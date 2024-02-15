@@ -2,10 +2,12 @@ package server
 
 import (
 	"github.com/goccy/go-json"
+	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/utils"
+	"github.com/rs/zerolog"
 	"time"
 )
 
@@ -14,6 +16,7 @@ type Config struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
+	Logger       zerolog.Logger
 }
 
 func New(cfg Config) *fiber.App {
@@ -32,6 +35,10 @@ func New(cfg Config) *fiber.App {
 		Header:     fiber.HeaderXRequestID,
 		Generator:  utils.UUID,
 		ContextKey: "requestID",
+	}))
+	app.Use(fiberzerolog.New(fiberzerolog.Config{
+		Logger: &cfg.Logger,
+		Fields: []string{fiberzerolog.FieldLatency, fiberzerolog.FieldStatus, fiberzerolog.FieldMethod, fiberzerolog.FieldURL, fiberzerolog.FieldError, fiberzerolog.FieldRequestID},
 	}))
 
 	app.Get("/ping", func(c *fiber.Ctx) error {

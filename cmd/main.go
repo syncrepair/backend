@@ -6,6 +6,7 @@ import (
 	"github.com/syncrepair/backend/internal/config"
 	"github.com/syncrepair/backend/internal/delivery/http/handler"
 	"github.com/syncrepair/backend/internal/delivery/http/server"
+	"github.com/syncrepair/backend/internal/logging"
 	"github.com/syncrepair/backend/internal/repository/postgres"
 	"github.com/syncrepair/backend/internal/usecase"
 	"os"
@@ -17,18 +18,33 @@ func main() {
 	// Configuration
 	cfg := config.Load()
 
+	// Logging
+	log := logging.New(cfg.LogLevel)
+	log.Info().
+		Msgf("starting %s", cfg.AppName)
+
 	// Repositories
+	log.Info().
+		Msg("initializing postgres repositories")
+
 	companyRepository := postgres.NewCompanyRepository()
 
 	// Usecases
+	log.Info().
+		Msg("initializing usecases")
+
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
 
 	// HTTP
+	log.Info().
+		Msg("initializing http server")
+
 	httpServer := server.New(server.Config{
 		AppName:      cfg.AppName,
 		ReadTimeout:  cfg.HTTPServer.ReadTimeout,
 		WriteTimeout: cfg.HTTPServer.WriteTimeout,
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+		Logger:       log,
 	})
 
 	companyHandler := handler.NewCompanyHandler(companyUsecase)
@@ -41,6 +57,10 @@ func main() {
 		}
 	}
 
+	log.Info().
+		Int("port", cfg.HTTPServer.Port).
+		Msg("starting http server")
+
 	go func() {
 		err := httpServer.Listen(fmt.Sprintf(":%d", cfg.HTTPServer.Port))
 		if err != nil {
@@ -52,6 +72,9 @@ func main() {
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
 	<-quit
+
+	log.Info().
+		Msg("stopping http server")
 
 	if err := httpServer.Shutdown(); err != nil {
 		panic("error while stopping http server: " + err.Error())
