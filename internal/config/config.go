@@ -13,6 +13,7 @@ type (
 		AppName    string     `yaml:"app_name" env-required:"true"`
 		LogLevel   string     `yaml:"log_level" env-required:"true"`
 		HTTPServer HTTPServer `yaml:"http_server" env-required:"true"`
+		Postgres   Postgres   `yaml:"postgres" env-required:"true"`
 	}
 
 	HTTPServer struct {
@@ -20,6 +21,10 @@ type (
 		ReadTimeout  time.Duration `yaml:"read_timeout" env-required:"true"`
 		WriteTimeout time.Duration `yaml:"write_timeout" env-required:"true"`
 		IdleTimeout  time.Duration `yaml:"idle_timeout" env-required:"true"`
+	}
+
+	Postgres struct {
+		URL string `yaml:"url" env:"POSTGRES_URL" env-required:"true"`
 	}
 )
 

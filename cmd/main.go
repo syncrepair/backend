@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/Masterminds/squirrel"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/syncrepair/backend/internal/config"
 	"github.com/syncrepair/backend/internal/delivery/http/handler"
 	"github.com/syncrepair/backend/internal/delivery/http/server"
 	"github.com/syncrepair/backend/internal/logging"
-	"github.com/syncrepair/backend/internal/repository/postgres"
+	postgresRepository "github.com/syncrepair/backend/internal/repository/postgres"
 	"github.com/syncrepair/backend/internal/usecase"
+	"github.com/syncrepair/backend/pkg/database/postgres"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,11 +25,17 @@ func main() {
 	log.Info().
 		Msgf("starting %s", cfg.AppName)
 
+	// Postgres
+	postgresDB := postgres.New(cfg.Postgres.URL)
+	defer postgresDB.Close()
+
+	postgresSB := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+
 	// Repositories
 	log.Info().
 		Msg("initializing postgres repositories")
 
-	companyRepository := postgres.NewCompanyRepository()
+	companyRepository := postgresRepository.NewCompanyRepository(postgresDB, postgresSB)
 
 	// Usecases
 	log.Info().
