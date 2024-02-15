@@ -23,8 +23,8 @@ func NewCompanyRepository(db *pgxpool.Pool, statementBuilder squirrel.StatementB
 
 func (r *CompanyRepository) Create(ctx context.Context, company *model.Company) error {
 	sql, args, err := r.sb.Insert(companiesTable).
-		Columns("id", "name").
-		Values(company.ID, company.Name).
+		Columns("id", "name", "created_at", "updated_at").
+		Values(company.ID, company.Name, company.CreatedAt, company.UpdatedAt).
 		ToSql()
 	if err != nil {
 		return err

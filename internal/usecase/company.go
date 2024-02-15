@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/matoous/go-nanoid/v2"
 	"github.com/syncrepair/backend/internal/model"
+	"time"
 )
 
 type CompanyRepository interface {
@@ -27,8 +28,10 @@ func (u *CompanyUsecase) Create(ctx context.Context, input *model.CompanyCreateI
 	}
 
 	company := &model.Company{
-		ID:   id,
-		Name: input.Name,
+		ID:        id,
+		Name:      input.Name,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	if err := u.repository.Create(ctx, company); err != nil {
