@@ -4,6 +4,7 @@ import (
 	"fmt"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/syncrepair/backend/internal/config"
+	"github.com/syncrepair/backend/internal/delivery/http/handler"
 	"github.com/syncrepair/backend/internal/delivery/http/server"
 	"os"
 	"os/signal"
@@ -22,7 +23,15 @@ func main() {
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 	})
 
-	httpServer.Group("/api")
+	companyHandler := handler.NewCompanyHandler()
+
+	api := httpServer.Group("/api")
+	{
+		company := api.Group("/companies")
+		{
+			company.Post("/", companyHandler.Create)
+		}
+	}
 
 	go func() {
 		err := httpServer.Listen(fmt.Sprintf(":%d", cfg.HTTPServer.Port))
