@@ -6,6 +6,7 @@ import (
 	"github.com/syncrepair/backend/internal/config"
 	"github.com/syncrepair/backend/internal/delivery/http/handler"
 	"github.com/syncrepair/backend/internal/delivery/http/server"
+	"github.com/syncrepair/backend/internal/usecase"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,6 +16,9 @@ func main() {
 	// Configuration
 	cfg := config.Load()
 
+	// Usecases
+	companyUsecase := usecase.NewCompanyUsecase()
+
 	// HTTP
 	httpServer := server.New(server.Config{
 		AppName:      cfg.AppName,
@@ -23,7 +27,7 @@ func main() {
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 	})
 
-	companyHandler := handler.NewCompanyHandler()
+	companyHandler := handler.NewCompanyHandler(companyUsecase)
 
 	api := httpServer.Group("/api")
 	{
