@@ -6,6 +6,7 @@ import (
 	"github.com/syncrepair/backend/internal/config"
 	"github.com/syncrepair/backend/internal/delivery/http/handler"
 	"github.com/syncrepair/backend/internal/delivery/http/server"
+	"github.com/syncrepair/backend/internal/repository/postgres"
 	"github.com/syncrepair/backend/internal/usecase"
 	"os"
 	"os/signal"
@@ -16,8 +17,11 @@ func main() {
 	// Configuration
 	cfg := config.Load()
 
+	// Repositories
+	companyRepository := postgres.NewCompanyRepository()
+
 	// Usecases
-	companyUsecase := usecase.NewCompanyUsecase()
+	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
 
 	// HTTP
 	httpServer := server.New(server.Config{

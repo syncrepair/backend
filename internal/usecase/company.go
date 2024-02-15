@@ -5,14 +5,26 @@ import (
 	"fmt"
 )
 
-type CompanyUsecase struct{}
+type CompanyRepository interface {
+	Create(ctx context.Context) error
+}
 
-func NewCompanyUsecase() *CompanyUsecase {
-	return &CompanyUsecase{}
+type CompanyUsecase struct {
+	repository CompanyRepository
+}
+
+func NewCompanyUsecase(repository CompanyRepository) *CompanyUsecase {
+	return &CompanyUsecase{
+		repository: repository,
+	}
 }
 
 func (u *CompanyUsecase) Create(ctx context.Context) error {
 	fmt.Println("CompanyUsecase.Create")
+
+	if err := u.repository.Create(ctx); err != nil {
+		return err
+	}
 
 	return nil
 }
