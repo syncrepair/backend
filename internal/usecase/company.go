@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"github.com/syncrepair/backend/internal/model"
+	"github.com/syncrepair/backend/internal/utils/code"
 	"github.com/syncrepair/backend/internal/utils/id"
 	"time"
 )
@@ -21,17 +22,18 @@ func NewCompanyUsecase(repository CompanyRepository) *CompanyUsecase {
 	}
 }
 
-func (u *CompanyUsecase) Create(ctx context.Context, input *model.CompanyCreateInput) error {
+func (u *CompanyUsecase) Create(ctx context.Context, input *model.CompanyCreateInput) (string, error) {
 	company := &model.Company{
 		ID:        id.Generate(),
 		Name:      input.Name,
+		Code:      code.Generate(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
 	if err := u.repository.Create(ctx, company); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return company.Code, nil
 }

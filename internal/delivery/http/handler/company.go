@@ -26,9 +26,10 @@ func (h *CompanyHandler) Create(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
-	if err := h.usecase.Create(ctx.Context(), inp); err != nil {
+	companyCode, err := h.usecase.Create(ctx.Context(), inp)
+	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return ctx.SendStatus(fiber.StatusCreated)
+	return ctx.Status(fiber.StatusCreated).SendString(companyCode)
 }
