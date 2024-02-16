@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
-	"github.com/matoous/go-nanoid/v2"
 	"github.com/syncrepair/backend/internal/model"
+	"github.com/syncrepair/backend/internal/utils/id"
 	"time"
 )
 
@@ -22,13 +22,8 @@ func NewCompanyUsecase(repository CompanyRepository) *CompanyUsecase {
 }
 
 func (u *CompanyUsecase) Create(ctx context.Context, input *model.CompanyCreateInput) error {
-	id, err := gonanoid.New()
-	if err != nil {
-		return err
-	}
-
 	company := &model.Company{
-		ID:        id,
+		ID:        id.Generate(),
 		Name:      input.Name,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
