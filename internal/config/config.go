@@ -14,6 +14,7 @@ type (
 		LogLevel   string     `yaml:"log_level" env-required:"true"`
 		HTTPServer HTTPServer `yaml:"http_server" env-required:"true"`
 		Postgres   Postgres   `yaml:"postgres" env-required:"true"`
+		Password   Password   `yaml:"password" env-required:"true"`
 	}
 
 	HTTPServer struct {
@@ -25,6 +26,11 @@ type (
 
 	Postgres struct {
 		URL string `yaml:"url" env:"POSTGRES_URL" env-required:"true"`
+	}
+
+	Password struct {
+		HashingCost int    `yaml:"hashing_cost" env-required:"true"`
+		Salt        string `yaml:"salt" env:"PASSWORD_SALT" env-required:"true"`
 	}
 )
 

@@ -7,3 +7,6 @@ http_server:
   read_timeout: 10s
   write_timeout: 10s
   idle_timeout: 30s
+
+password:
+  hashing_cost: 10

@@ -10,5 +10,7 @@ Backend of Syncrepair
 # dev | prod
 ENV=prod
 
-POSTGRES_URL: postgres://jack:secret@pg.example.com:5432/mydb
+POSTGRES_URL=postgres://jack:secret@pg.example.com:5432/mydb
+
+PASSWORD_SALT=<secret-salt>
 ```
