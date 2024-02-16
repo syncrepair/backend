@@ -30,5 +30,5 @@ func (h *CompanyHandler) Create(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return ctx.Status(fiber.StatusNotImplemented).SendString("not implemented")
+	return ctx.SendStatus(fiber.StatusCreated)
 }
