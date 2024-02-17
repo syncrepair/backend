@@ -11,6 +11,7 @@ import (
 	postgresRepository "github.com/syncrepair/backend/internal/repository/postgres"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/database/postgres"
+	"github.com/syncrepair/backend/pkg/password"
 	"os"
 	"os/signal"
 	"syscall"
@@ -31,17 +32,22 @@ func main() {
 
 	postgresSB := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
+	// Packages
+	passwordHasher := password.NewHasher(cfg.Password.Salt, cfg.Password.HashingCost)
+
 	// Repositories
 	log.Info().
 		Msg("initializing postgres repositories")
 
 	companyRepository := postgresRepository.NewCompanyRepository(postgresDB, postgresSB)
+	userRepository := postgresRepository.NewUserRepository(postgresDB, postgresSB)
 
 	// Usecases
 	log.Info().
 		Msg("initializing usecases")
 
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
+	userUsecase := usecase.NewUserUsecase(userRepository, companyRepository, passwordHasher)
 
 	// HTTP
 	log.Info().
@@ -56,12 +62,18 @@ func main() {
 	})
 
 	companyHandler := handler.NewCompanyHandler(companyUsecase)
+	userHandler := handler.NewUserHandler(userUsecase)
 
 	api := httpServer.Group("/api")
 	{
-		company := api.Group("/companies")
+		companies := api.Group("/companies")
 		{
-			company.Post("/", companyHandler.Create)
+			companies.Post("/", companyHandler.Create)
+		}
+
+		users := api.Group("/users")
+		{
+			users.Post("/signup", userHandler.SignUp)
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 
 type CompanyRepository interface {
 	Create(ctx context.Context, company *model.Company) error
+	GetByCode(ctx context.Context, code string) (*model.Company, error)
 }
 
 type CompanyUsecase struct {

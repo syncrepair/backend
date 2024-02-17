@@ -22,7 +22,8 @@ func NewCompanyRepository(db *pgxpool.Pool, statementBuilder squirrel.StatementB
 }
 
 func (r *CompanyRepository) Create(ctx context.Context, company *model.Company) error {
-	sql, args, err := r.sb.Insert(companiesTable).
+	sql, args, err := r.sb.
+		Insert(companiesTable).
 		Columns("id", "name", "code", "created_at", "updated_at").
 		Values(company.ID, company.Name, company.Code, company.CreatedAt, company.UpdatedAt).
 		ToSql()
@@ -36,4 +37,24 @@ func (r *CompanyRepository) Create(ctx context.Context, company *model.Company) 
 	}
 
 	return nil
+}
+
+func (r *CompanyRepository) GetByCode(ctx context.Context, code string) (*model.Company, error) {
+	sql, args, err := r.sb.
+		Select("id", "name", "code", "created_at", "updated_at").
+		From(companiesTable).
+		Where(squirrel.Eq{"code": code}).
+		Limit(1).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var company model.Company
+
+	if err := r.db.QueryRow(ctx, sql, args...).Scan(&company.ID, &company.Name, &company.Code, &company.CreatedAt, &company.UpdatedAt); err != nil {
+		return nil, err
+	}
+
+	return &company, nil
 }
