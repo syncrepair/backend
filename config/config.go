@@ -7,7 +7,9 @@ import (
 )
 
 type Config struct {
-	AppName string `env:"APP_NAME" env-default:"backend"`
+	AppName   string `env:"APP_NAME" env-default:"backend"`
+	MongoURI  string `env:"MONGO_URI" env-required:"true"`
+	MongoName string `env:"MONGO_NAME" env-required:"true"`
 }
 
 var (
