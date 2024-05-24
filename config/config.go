@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+	LogLevel  string `env:"LOG_LEVEL" envDefault:"error"`
 	AppName   string `env:"APP_NAME" env-default:"backend"`
 	MongoURI  string `env:"MONGO_URI" env-required:"true"`
 	MongoName string `env:"MONGO_NAME" env-required:"true"`
