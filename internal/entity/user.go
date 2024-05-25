@@ -9,3 +9,8 @@ type User struct {
 	Password    string             `bson:"password"`
 	IsConfirmed bool               `bson:"is_confirmed"`
 }
+
+type UserTokens struct {
+	AccessToken  string `bson:"access_token"`
+	RefreshToken string `bson:"refresh_token"`
+}
