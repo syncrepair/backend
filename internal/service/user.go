@@ -7,21 +7,21 @@ import (
 	"github.com/syncrepair/backend/internal/repository"
 )
 
-type User interface {
+type UserService interface {
 	SignUp(context.Context, *entity.User) (*entity.UserTokens, error)
 }
 
-type user struct {
-	repository repository.User
+type userService struct {
+	repository repository.UserRepository
 }
 
-func NewUser(repository repository.User) User {
-	return &user{
+func NewUserService(repository repository.UserRepository) UserService {
+	return &userService{
 		repository: repository,
 	}
 }
 
-func (s *user) SignUp(ctx context.Context, user *entity.User) (*entity.UserTokens, error) {
+func (s *userService) SignUp(ctx context.Context, user *entity.User) (*entity.UserTokens, error) {
 	createdUser, err := s.repository.Create(ctx, user)
 	if err != nil {
 		return nil, err

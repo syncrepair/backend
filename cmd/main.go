@@ -33,8 +33,8 @@ func main() {
 	mongoDB := mongoClient.Database(cfg.MongoName)
 
 	// Repositories
-	userRepository := repository.NewUser(mongoDB.Collection("users"))
+	userRepository := repository.NewUserRepository(mongoDB.Collection("users"))
 
 	// Services
-	service.NewUser(userRepository)
+	service.NewUserService(userRepository)
 }

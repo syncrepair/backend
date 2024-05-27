@@ -7,21 +7,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type User interface {
+type UserRepository interface {
 	Create(context.Context, *entity.User) (*entity.User, error)
 }
 
-type user struct {
+type userRepository struct {
 	collection *mongo.Collection
 }
 
-func NewUser(collection *mongo.Collection) User {
-	return &user{
+func NewUserRepository(collection *mongo.Collection) UserRepository {
+	return &userRepository{
 		collection: collection,
 	}
 }
 
-func (r *user) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
+func (r *userRepository) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
 	result, err := r.collection.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
