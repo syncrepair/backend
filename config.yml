@@ -4,6 +4,12 @@ app:
   name: "syncrepair"
   version: "1.0"
 
+server:
+  port: 8080
+  read_timeout: 10s
+  write_timeout: 15s
+  idle_timeout: 60s
+
 mongo:
   uri: "mongodb+srv://xxehwuq:lbAQkip6Wi5HK3YL@syncrepair.mi8gif4.mongodb.net/?retryWrites=true&w=majority&appName=syncrepair"
   name: "syncrepair"
