@@ -31,7 +31,7 @@ func main() {
 	log.Info().
 		Msg("Instantiating repositories")
 
-	userRepository := repository.NewUserRepository(mongoDB.Collection("users"))
+	userRepository := repository.NewUserRepository(mongoDB)
 
 	// Services
 	log.Info().
