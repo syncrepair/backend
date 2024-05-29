@@ -8,17 +8,17 @@ import (
 
 type (
 	Config struct {
-		LogLevel string `yaml:"log_level" env-default:"error"`
-		App      App    `yaml:"app" env-required:"true"`
-		Mongo    Mongo  `yaml:"mongo" env-required:"true"`
+		LogLevel string      `yaml:"log_level" env-default:"error"`
+		App      AppConfig   `yaml:"app" env-required:"true"`
+		Mongo    MongoConfig `yaml:"mongo" env-required:"true"`
 	}
 
-	App struct {
+	AppConfig struct {
 		Name    string `yaml:"name" env-required:"true"`
 		Version string `yaml:"version" env-required:"true"`
 	}
 
-	Mongo struct {
+	MongoConfig struct {
 		URI  string `yaml:"uri" env-required:"true"`
 		Name string `yaml:"name" env-required:"true"`
 	}
