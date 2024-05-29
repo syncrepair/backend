@@ -6,24 +6,33 @@ import (
 	"sync"
 )
 
-type Config struct {
-	LogLevel  string `env:"LOG_LEVEL" envDefault:"error"`
-	AppName   string `env:"APP_NAME" env-default:"backend"`
-	MongoURI  string `env:"MONGO_URI" env-required:"true"`
-	MongoName string `env:"MONGO_NAME" env-required:"true"`
-}
+type (
+	Config struct {
+		App   App   `yaml:"app" env-required:"true"`
+		Mongo Mongo `yaml:"mongo" env-required:"true"`
+	}
+
+	App struct {
+		Name string `yaml:"name" env-required:"true"`
+	}
+
+	Mongo struct {
+		URI  string `yaml:"uri" env-required:"true"`
+		Name string `yaml:"name" env-required:"true"`
+	}
+)
 
 var (
 	cfg  *Config
 	once sync.Once
 )
 
-func Init() *Config {
+func Load(filePath string) *Config {
 	once.Do(func() {
 		cfg = &Config{}
 
-		if err := cleanenv.ReadConfig(".env", cfg); err != nil {
-			log.Fatalf("error reading .env file: %v", err)
+		if err := cleanenv.ReadConfig(filePath, cfg); err != nil {
+			log.Fatalf("error reading %s file: %v", filePath, err)
 		}
 	})
 

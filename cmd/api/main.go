@@ -5,25 +5,16 @@ import (
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/service"
 	"github.com/syncrepair/backend/pkg/database/mongo"
-	"github.com/syncrepair/backend/pkg/logging"
-	"os"
 )
+
+const configFilePath = "config.yml"
 
 func main() {
 	// Configuration
-	cfg := config.Init()
-
-	// Logger
-	logger := logging.New(os.Stderr, cfg.LogLevel)
-
-	logger.Info().
-		Msgf("🚀 Starting %s", cfg.AppName)
+	cfg := config.Load(configFilePath)
 
 	// Database
-	logger.Info().
-		Msg("Connecting to mongo database")
-
-	mongoDB := mongo.NewClient(cfg.MongoURI).Database(cfg.MongoName)
+	mongoDB := mongo.NewClient(cfg.Mongo.URI).Database(cfg.Mongo.Name)
 
 	// Repositories
 	userRepository := repository.NewUserRepository(mongoDB.Collection("users"))
