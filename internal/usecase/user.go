@@ -1,4 +1,4 @@
-package service
+package usecase
 
 import (
 	"context"
@@ -7,22 +7,22 @@ import (
 	"github.com/syncrepair/backend/internal/repository"
 )
 
-type UserService interface {
+type UserUsecase interface {
 	SignUp(context.Context, *entity.User) (*entity.UserTokens, error)
 }
 
-type userService struct {
+type userUsecase struct {
 	repository repository.UserRepository
 }
 
-func NewUserService(repository repository.UserRepository) UserService {
-	return &userService{
+func NewUserUsecase(repository repository.UserRepository) UserUsecase {
+	return &userUsecase{
 		repository: repository,
 	}
 }
 
-func (s *userService) SignUp(ctx context.Context, user *entity.User) (*entity.UserTokens, error) {
-	createdUser, err := s.repository.Create(ctx, user)
+func (uc *userUsecase) SignUp(ctx context.Context, user *entity.User) (*entity.UserTokens, error) {
+	createdUser, err := uc.repository.Create(ctx, user)
 	if err != nil {
 		return nil, err
 	}

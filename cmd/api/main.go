@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/syncrepair/backend/config"
 	"github.com/syncrepair/backend/internal/repository"
-	"github.com/syncrepair/backend/internal/service"
+	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/database/mongo"
 	"github.com/syncrepair/backend/pkg/logging"
 )
@@ -35,7 +35,7 @@ func main() {
 
 	// Services
 	log.Info().
-		Msg("Instantiating services")
+		Msg("Instantiating usecases")
 
-	service.NewUserService(userRepository)
+	usecase.NewUserUsecase(userRepository)
 }
