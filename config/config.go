@@ -13,7 +13,8 @@ type (
 	}
 
 	App struct {
-		Name string `yaml:"name" env-required:"true"`
+		Name    string `yaml:"name" env-required:"true"`
+		Version string `yaml:"version" env-required:"true"`
 	}
 
 	Mongo struct {

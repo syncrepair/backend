@@ -1,5 +1,6 @@
 app:
   name: "syncrepair"
+  version: "1.0"
 
 mongo:
   uri: "mongodb+srv://xxehwuq:lbAQkip6Wi5HK3YL@syncrepair.mi8gif4.mongodb.net/?retryWrites=true&w=majority&appName=syncrepair"
