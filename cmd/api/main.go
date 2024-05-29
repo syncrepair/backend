@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/syncrepair/backend/config"
+	"github.com/syncrepair/backend/internal/config"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/database/mongo"
