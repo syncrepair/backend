@@ -15,7 +15,7 @@ func main() {
 	cfg := config.Load(configFilePath)
 
 	// Logging
-	log := logging.New()
+	log := logging.New(cfg.LogLevel)
 
 	log.Info().
 		Str("version", cfg.App.Version).

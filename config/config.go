@@ -8,8 +8,9 @@ import (
 
 type (
 	Config struct {
-		App   App   `yaml:"app" env-required:"true"`
-		Mongo Mongo `yaml:"mongo" env-required:"true"`
+		LogLevel string `yaml:"log_level" env-default:"error"`
+		App      App    `yaml:"app" env-required:"true"`
+		Mongo    Mongo  `yaml:"mongo" env-required:"true"`
 	}
 
 	App struct {
