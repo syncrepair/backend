@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"github.com/syncrepair/backend/config"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/service"
@@ -11,9 +10,6 @@ import (
 )
 
 func main() {
-	// Context
-	ctx := context.Background()
-
 	// Configuration
 	cfg := config.Init()
 
@@ -27,12 +23,10 @@ func main() {
 	logger.Info().
 		Msg("Connecting to mongo database")
 
-	mongoClient := mongo.NewClient(ctx, cfg.MongoURI)
-
-	mongoDatabase := mongoClient.Database(cfg.MongoName)
+	mongoDB := mongo.NewClient(cfg.MongoURI).Database(cfg.MongoName)
 
 	// Repositories
-	userRepository := repository.NewUserRepository(mongoDatabase.Collection("users"))
+	userRepository := repository.NewUserRepository(mongoDB.Collection("users"))
 
 	// Services
 	service.NewUserService(userRepository)
