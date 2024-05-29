@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"github.com/syncrepair/backend/internal/config"
+	"github.com/syncrepair/backend/internal/logger"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/server"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/database/mongo"
-	"github.com/syncrepair/backend/pkg/logging"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,7 +21,7 @@ func main() {
 	cfg := config.Load(configFilePath)
 
 	// Logging
-	log := logging.New(cfg.LogLevel)
+	log := logger.New(cfg.LogLevel)
 
 	log.Info().
 		Str("version", cfg.App.Version).
