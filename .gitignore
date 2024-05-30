@@ -23,5 +23,9 @@ go.work
 # IDE folder
 .idea
 
+# Temporary `air` folders
+tmp
+cmd/tmp
+
 # ENV files
 *.env
