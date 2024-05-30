@@ -1,18 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
-	"github.com/syncrepair/backend/internal/config"
+	"github.com/syncrepair/backend/internal/bootstrap/config"
 	"github.com/syncrepair/backend/internal/handler"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/database/mongo"
 )
 
-const configFilePath = "config.yml"
-
 func main() {
-	cfg := config.Load(configFilePath)
+	cfg := config.Init()
 
 	mongoClient := mongo.NewClient(cfg.Mongo.URI)
 	mongoDB := mongoClient.Database(cfg.Mongo.Name)
@@ -28,5 +27,7 @@ func main() {
 		userHandler.Routes(apiGroup)
 	}
 
-	e.Logger.Fatal(e.Start(":8080"))
+	if err := e.Start(fmt.Sprintf("%s:%s", cfg.HTTP.Host, cfg.HTTP.Port)); err != nil {
+		panic("error starting server: " + err.Error())
+	}
 }
