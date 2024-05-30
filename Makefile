@@ -4,4 +4,4 @@ mod-tidy:
 	go mod tidy
 
 run:
-	go run cmd/api/main.go
+	go run cmd/main.go

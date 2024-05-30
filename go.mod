@@ -5,7 +5,6 @@ go 1.22.0
 require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/rs/zerolog v1.33.0
 	go.mongodb.org/mongo-driver v1.15.0
 )
 
