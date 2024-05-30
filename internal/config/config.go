@@ -4,7 +4,6 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"log"
 	"sync"
-	"time"
 )
 
 type (
@@ -21,10 +20,7 @@ type (
 	}
 
 	ServerConfig struct {
-		Port         int           `yaml:"port" env-required:"true"`
-		ReadTimeout  time.Duration `yaml:"read_timeout" env-required:"true"`
-		WriteTimeout time.Duration `yaml:"write_timeout" env-required:"true"`
-		IdleTimeout  time.Duration `yaml:"idle_timeout" env-required:"true"`
+		Port int `yaml:"port" env-required:"true"`
 	}
 
 	MongoConfig struct {
