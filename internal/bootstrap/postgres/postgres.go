@@ -10,7 +10,7 @@ func Init(cfg Config) *pgxpool.Pool {
 	ctx := context.Background()
 
 	pool, err := pgxpool.New(ctx, fmt.Sprintf(
-		"user=%s password=%s host=%s port=%s dbname=%s",
+		"user=%s password=%s host=%s port=%d dbname=%s",
 		cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database,
 	))
 	if err != nil {
