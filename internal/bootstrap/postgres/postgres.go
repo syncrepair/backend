@@ -17,9 +17,5 @@ func Init(cfg Config) *pgxpool.Pool {
 		panic("error connecting to postgres database: " + err.Error())
 	}
 
-	if err := pool.Ping(ctx); err != nil {
-		panic("error pinging postgres database: " + err.Error())
-	}
-
 	return pool
 }

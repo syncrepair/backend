@@ -1,4 +1,5 @@
 http:
+  address: ":"
   read_timeout: 10s
   write_timeout: 15s
   idle_timeout: 60s
