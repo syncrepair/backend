@@ -22,6 +22,9 @@ func setValsFromEnv(cfg *Config) {
 
 	cfg.HTTP.Addr = os.Getenv("HTTP_ADDR")
 
-	cfg.Mongo.URI = os.Getenv("MONGO_URI")
-	cfg.Mongo.Name = os.Getenv("MONGO_NAME")
+	cfg.Postgres.Username = os.Getenv("POSTGRES_USERNAME")
+	cfg.Postgres.Password = os.Getenv("POSTGRES_PASSWORD")
+	cfg.Postgres.Host = os.Getenv("POSTGRES_HOST")
+	cfg.Postgres.Port = os.Getenv("POSTGRES_PORT")
+	cfg.Postgres.Database = os.Getenv("POSTGRES_DATABASE")
 }

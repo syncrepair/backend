@@ -3,19 +3,25 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/syncrepair/backend/internal/bootstrap/config"
+	"github.com/syncrepair/backend/internal/bootstrap/postgres"
 	"github.com/syncrepair/backend/internal/handler"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
-	"github.com/syncrepair/backend/pkg/database/mongo"
 )
 
 func main() {
 	cfg := config.Init()
 
-	mongoClient := mongo.NewClient(cfg.Mongo.URI)
-	mongoDB := mongoClient.Database(cfg.Mongo.Name)
+	postgresDB := postgres.Init(postgres.Config{
+		Username: cfg.Postgres.Username,
+		Password: cfg.Postgres.Password,
+		Host:     cfg.Postgres.Host,
+		Port:     cfg.Postgres.Port,
+		Database: cfg.Postgres.Database,
+	})
+	defer postgresDB.Close()
 
-	userRepository := repository.NewUserRepository(mongoDB)
+	userRepository := repository.NewUserRepository(postgresDB)
 	userUsecase := usecase.NewUserUsecase(userRepository)
 	userHandler := handler.NewUserHandler(userUsecase)
 

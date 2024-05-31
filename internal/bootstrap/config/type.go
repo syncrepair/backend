@@ -10,8 +10,11 @@ type Config struct {
 		Addr string
 	}
 
-	Mongo struct {
-		URI  string
-		Name string
+	Postgres struct {
+		Username string
+		Password string
+		Host     string
+		Port     string
+		Database string
 	}
 }

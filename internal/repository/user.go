@@ -2,9 +2,8 @@ package repository
 
 import (
 	"context"
-	"fmt"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/syncrepair/backend/internal/domain"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserRepository interface {
@@ -12,22 +11,20 @@ type UserRepository interface {
 }
 
 type userRepository struct {
-	collection *mongo.Collection
+	db *pgxpool.Pool
 }
 
-func NewUserRepository(db *mongo.Database) UserRepository {
+func NewUserRepository(db *pgxpool.Pool) UserRepository {
 	return &userRepository{
-		collection: db.Collection(domain.UserCollectionName),
+		db: db,
 	}
 }
 
 func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
-	result, err := r.collection.InsertOne(ctx, user)
+	_, err := r.db.Exec(ctx, "insert into users (id, name, email, password, is_confirmed) values ($1, $2, $3, $4, $5)", user.ID, user.Name, user.Email, user.Password, user.IsConfirmed)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(result)
 
 	return user, nil
 }
