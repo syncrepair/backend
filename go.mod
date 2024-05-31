@@ -7,6 +7,7 @@ require (
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.12.0
+	github.com/matoous/go-nanoid/v2 v2.1.0
 )
 
 require (
