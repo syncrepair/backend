@@ -1,6 +1,7 @@
 package main
 
 import (
+	sq "github.com/Masterminds/squirrel"
 	"github.com/labstack/echo/v4"
 	"github.com/syncrepair/backend/internal/bootstrap/config"
 	"github.com/syncrepair/backend/internal/bootstrap/postgres"
@@ -21,7 +22,9 @@ func main() {
 	})
 	defer postgresDB.Close()
 
-	userRepository := repository.NewUserRepository(postgresDB)
+	postgresSB := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
 	userUsecase := usecase.NewUserUsecase(userRepository)
 	userHandler := handler.NewUserHandler(userUsecase)
 
