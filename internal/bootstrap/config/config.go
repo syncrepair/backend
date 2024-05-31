@@ -20,8 +20,7 @@ func Init() *Config {
 func setValsFromEnv(cfg *Config) {
 	cfg.App.Name = os.Getenv("APP_NAME")
 
-	cfg.HTTP.Host = os.Getenv("HTTP_HOST")
-	cfg.HTTP.Port = os.Getenv("HTTP_PORT")
+	cfg.HTTP.Addr = os.Getenv("HTTP_ADDR")
 
 	cfg.Mongo.URI = os.Getenv("MONGO_URI")
 	cfg.Mongo.Name = os.Getenv("MONGO_NAME")

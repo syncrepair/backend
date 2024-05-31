@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/syncrepair/backend/internal/bootstrap/config"
 	"github.com/syncrepair/backend/internal/handler"
@@ -27,7 +26,7 @@ func main() {
 		userHandler.Routes(apiGroup)
 	}
 
-	if err := e.Start(fmt.Sprintf("%s:%s", cfg.HTTP.Host, cfg.HTTP.Port)); err != nil {
+	if err := e.Start(cfg.HTTP.Addr); err != nil {
 		panic("error starting server: " + err.Error())
 	}
 }

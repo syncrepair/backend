@@ -7,8 +7,7 @@ type Config struct {
 	}
 
 	HTTP struct {
-		Host string
-		Port string
+		Addr string
 	}
 
 	Mongo struct {
