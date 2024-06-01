@@ -2,13 +2,13 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"github.com/syncrepair/backend/internal/domain"
 	"github.com/syncrepair/backend/internal/repository"
+	"github.com/syncrepair/backend/internal/util"
 )
 
 type UserUsecase interface {
-	SignUp(context.Context, *domain.User) (*domain.UserTokens, error)
+	SignUp(context.Context, domain.User) (domain.UserTokens, error)
 }
 
 type userUsecase struct {
@@ -21,14 +21,15 @@ func NewUserUsecase(repository repository.UserRepository) UserUsecase {
 	}
 }
 
-func (uc *userUsecase) SignUp(ctx context.Context, user *domain.User) (*domain.UserTokens, error) {
-	createdUser, err := uc.repository.Create(ctx, user)
-	if err != nil {
-		return nil, err
+func (uc *userUsecase) SignUp(ctx context.Context, user domain.User) (domain.UserTokens, error) {
+	user.ID = util.GenerateID()
+	user.IsConfirmed = false
+
+	// TODO: password hashing
+
+	if err := uc.repository.Create(ctx, user); err != nil {
+		return domain.UserTokens{}, err
 	}
 
-	return &domain.UserTokens{
-		AccessToken:  fmt.Sprintf("%s", createdUser.ID),
-		RefreshToken: fmt.Sprintf("%s", createdUser.ID),
-	}, nil
+	return domain.UserTokens{}, nil
 }

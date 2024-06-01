@@ -2,13 +2,15 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/syncrepair/backend/internal/domain"
+	"github.com/syncrepair/backend/internal/util"
 )
 
 type UserRepository interface {
-	Create(context.Context, *domain.User) (*domain.User, error)
+	Create(context.Context, domain.User) error
 }
 
 type userRepository struct {
@@ -25,7 +27,7 @@ func NewUserRepository(db *pgxpool.Pool, sb squirrel.StatementBuilderType, table
 	}
 }
 
-func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 	sql, args := r.sb.Insert(r.tableName).
 		Columns("id", "name", "email", "password", "is_confirmed").
 		Values(user.ID, user.Name, user.Email, user.Password, user.IsConfirmed).
@@ -33,8 +35,12 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain
 
 	_, err := r.db.Exec(ctx, sql, args...)
 	if err != nil {
-		return nil, err
+		if errors.Is(util.ParsePgErr(err), util.PgErrAlreadyExists) {
+			return domain.ErrUserAlreadyExists
+		}
+
+		return err
 	}
 
-	return user, nil
+	return nil
 }
