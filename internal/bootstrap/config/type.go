@@ -21,4 +21,8 @@ type Config struct {
 		Port     int    `yaml:"port" env:"POSTGRES_PORT" env-required:"true"`
 		Database string `yaml:"database" env:"POSTGRES_DATABASE" env-required:"true"`
 	} `yaml:"postgres" env-required:"true"`
+
+	Auth struct {
+		PasswordSalt string `yaml:"password_salt" env:"AUTH_PASSWORD_SALT" env-required:"true"`
+	} `yaml:"auth" env-required:"true"`
 }
