@@ -8,9 +8,8 @@ import (
 )
 
 var (
-	PgErrNotFound       = errors.New("not found")
-	PgErrAlreadyExists  = errors.New("already exists")
-	PgErrInternalServer = errors.New("internal server")
+	PgErrNotFound      = errors.New("not found")
+	PgErrAlreadyExists = errors.New("already exists")
 )
 
 func ParsePgErr(err error) error {
@@ -26,5 +25,5 @@ func ParsePgErr(err error) error {
 		return PgErrNotFound
 	}
 
-	return PgErrInternalServer
+	return nil
 }
