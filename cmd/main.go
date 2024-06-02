@@ -12,6 +12,7 @@ import (
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/hasher"
+	"github.com/ziflex/lecho/v3"
 	"os"
 	"os/signal"
 	"syscall"
@@ -54,6 +55,8 @@ func main() {
 	userHandler := handler.NewUserHandler(userUsecase)
 
 	h := echo.New()
+
+	h.Logger = lecho.From(log)
 
 	apiGroup := h.Group("/api")
 	{
