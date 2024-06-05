@@ -4,6 +4,7 @@ import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/syncrepair/backend/internal/bootstrap/config"
 	"github.com/syncrepair/backend/internal/bootstrap/logger"
 	"github.com/syncrepair/backend/internal/bootstrap/postgres"
@@ -57,6 +58,22 @@ func main() {
 	h := echo.New()
 
 	h.Logger = lecho.From(log)
+	h.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogStatus:  true,
+		LogURI:     true,
+		LogError:   true,
+		LogLatency: true,
+		LogMethod:  true,
+		LogValuesFunc: func(c echo.Context, req middleware.RequestLoggerValues) error {
+			log.Info().
+				Str("uri", req.URI).
+				Int("status", req.Status).
+				Int64("latency", req.Latency.Milliseconds()).
+				Msg(req.Method)
+
+			return nil
+		},
+	}))
 
 	apiGroup := h.Group("/api")
 	{
