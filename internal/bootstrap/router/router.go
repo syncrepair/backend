@@ -3,15 +3,20 @@ package router
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
 	"github.com/rs/zerolog"
 	"github.com/ziflex/lecho/v3"
 )
 
-func Init(log zerolog.Logger) *echo.Echo {
+func Init(logger zerolog.Logger) *echo.Echo {
 	e := echo.New()
 
-	e.Logger = lecho.From(log)
-	e.Use(requestLoggerMiddleware(log))
+	e.Logger = lecho.From(logger)
+	e.Use(requestLoggerMiddleware(logger))
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		StackSize: 1 << 10,
+		LogLevel:  log.ERROR,
+	}))
 
 	return e
 }
