@@ -27,22 +27,22 @@ func (h *UserHandler) Routes(router *echo.Group) {
 	}
 }
 
-type UserSignUpRequest struct {
+type userSignUpInput struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func (h *UserHandler) SignUp(ctx echo.Context) error {
-	var req UserSignUpRequest
-	if err := ctx.Bind(&req); err != nil {
+	var input userSignUpInput
+	if err := ctx.Bind(&input); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	tokens, err := h.usecase.SignUp(util.Ctx(ctx), domain.User{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
+	tokens, err := h.usecase.SignUp(util.Ctx(ctx), usecase.UserSignUpInput{
+		Name:     input.Name,
+		Email:    input.Email,
+		Password: input.Password,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUserAlreadyExists) {

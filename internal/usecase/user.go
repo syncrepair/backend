@@ -9,7 +9,7 @@ import (
 )
 
 type UserUsecase interface {
-	SignUp(context.Context, domain.User) (domain.UserTokens, error)
+	SignUp(ctx context.Context, input UserSignUpInput) (domain.UserTokens, error)
 }
 
 type userUsecase struct {
@@ -24,12 +24,20 @@ func NewUserUsecase(repository repository.UserRepository, passwordHasher hasher.
 	}
 }
 
-func (uc *userUsecase) SignUp(ctx context.Context, user domain.User) (domain.UserTokens, error) {
-	user.ID = util.GenerateID()
-	user.IsConfirmed = false
-	user.Password = uc.passwordHasher.Hash(user.Password)
+type UserSignUpInput struct {
+	Name     string
+	Email    string
+	Password string
+}
 
-	if err := uc.repository.Create(ctx, user); err != nil {
+func (uc *userUsecase) SignUp(ctx context.Context, input UserSignUpInput) (domain.UserTokens, error) {
+	if err := uc.repository.Create(ctx, domain.User{
+		ID:          util.GenerateID(),
+		Name:        input.Name,
+		Email:       input.Email,
+		Password:    uc.passwordHasher.Hash(input.Password),
+		IsConfirmed: false,
+	}); err != nil {
 		return domain.UserTokens{}, err
 	}
 
