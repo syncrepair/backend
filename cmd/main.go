@@ -3,17 +3,15 @@ package main
 import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/syncrepair/backend/internal/bootstrap/config"
 	"github.com/syncrepair/backend/internal/bootstrap/logger"
 	"github.com/syncrepair/backend/internal/bootstrap/postgres"
+	"github.com/syncrepair/backend/internal/bootstrap/router"
 	"github.com/syncrepair/backend/internal/bootstrap/server"
 	"github.com/syncrepair/backend/internal/handler"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/hasher"
-	"github.com/ziflex/lecho/v3"
 	"os"
 	"os/signal"
 	"syscall"
@@ -55,27 +53,9 @@ func main() {
 	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher)
 	userHandler := handler.NewUserHandler(userUsecase)
 
-	h := echo.New()
+	r := router.Init(log)
 
-	h.Logger = lecho.From(log)
-	h.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogStatus:  true,
-		LogURI:     true,
-		LogError:   true,
-		LogLatency: true,
-		LogMethod:  true,
-		LogValuesFunc: func(c echo.Context, req middleware.RequestLoggerValues) error {
-			log.Info().
-				Str("uri", req.URI).
-				Int("status", req.Status).
-				Int64("latency", req.Latency.Milliseconds()).
-				Msg(req.Method)
-
-			return nil
-		},
-	}))
-
-	apiGroup := h.Group("/api")
+	apiGroup := r.Group("/api")
 	{
 		userHandler.Routes(apiGroup)
 	}
@@ -85,7 +65,7 @@ func main() {
 		Msg("Starting HTTP server")
 
 	srv := server.Init(server.Config{
-		Handler:      h,
+		Handler:      r,
 		Addr:         cfg.HTTP.Address,
 		ReadTimeout:  cfg.HTTP.ReadTimeout,
 		WriteTimeout: cfg.HTTP.WriteTimeout,
