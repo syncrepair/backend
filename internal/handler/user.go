@@ -55,6 +55,28 @@ func (h *UserHandler) SignUp(ctx echo.Context) error {
 	return SuccessResponse(ctx, http.StatusOK, tokens)
 }
 
+type userSignInInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func (h *UserHandler) SignIn(ctx echo.Context) error {
-	return ctx.String(http.StatusOK, "Sign In")
+	var input userSignInInput
+	if err := ctx.Bind(&input); err != nil {
+		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	tokens, err := h.usecase.SignIn(util.Ctx(ctx), usecase.UserSignInInput{
+		Email:    input.Email,
+		Password: input.Password,
+	})
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return ErrorResponse(ctx, http.StatusNotFound, domain.ErrUserNotFound)
+		}
+
+		return ErrorResponse(ctx, http.StatusInternalServerError, domain.ErrInternalServer, err)
+	}
+
+	return SuccessResponse(ctx, http.StatusOK, tokens)
 }

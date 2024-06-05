@@ -10,6 +10,7 @@ import (
 
 type UserUsecase interface {
 	SignUp(ctx context.Context, input UserSignUpInput) (domain.UserTokens, error)
+	SignIn(ctx context.Context, input UserSignInInput) (domain.UserTokens, error)
 }
 
 type userUsecase struct {
@@ -40,6 +41,24 @@ func (uc *userUsecase) SignUp(ctx context.Context, input UserSignUpInput) (domai
 	}); err != nil {
 		return domain.UserTokens{}, err
 	}
+
+	// TODO: generating JWT
+
+	return domain.UserTokens{}, nil
+}
+
+type UserSignInInput struct {
+	Email    string
+	Password string
+}
+
+func (uc *userUsecase) SignIn(ctx context.Context, input UserSignInInput) (domain.UserTokens, error) {
+	_, err := uc.repository.FindByCredentials(ctx, input.Email, uc.passwordHasher.Hash(input.Password))
+	if err != nil {
+		return domain.UserTokens{}, err
+	}
+
+	// TODO: generating JWT
 
 	return domain.UserTokens{}, nil
 }

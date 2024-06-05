@@ -10,7 +10,8 @@ import (
 )
 
 type UserRepository interface {
-	Create(context.Context, domain.User) error
+	Create(ctx context.Context, user domain.User) error
+	FindByCredentials(ctx context.Context, email string, password string) (domain.User, error)
 }
 
 type userRepository struct {
@@ -43,4 +44,27 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 	}
 
 	return nil
+}
+
+func (r *userRepository) FindByCredentials(ctx context.Context, email string, password string) (domain.User, error) {
+	sql, args := r.sb.Select("id", "name", "email", "password", "is_confirmed").
+		From(r.tableName).
+		Where(squirrel.And{
+			squirrel.Eq{"email": email},
+			squirrel.Eq{"password": password},
+		}).
+		MustSql()
+
+	var user domain.User
+
+	err := r.db.QueryRow(ctx, sql, args...).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.IsConfirmed)
+	if err != nil {
+		if errors.Is(util.ParsePgErr(err), util.PgErrNotFound) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
+
+		return domain.User{}, err
+	}
+
+	return user, nil
 }
