@@ -1,21 +1,37 @@
 package router
 
 import (
+	"errors"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/rs/zerolog"
+	"github.com/syncrepair/backend/internal/domain"
+	"github.com/syncrepair/backend/internal/handler"
 	"github.com/ziflex/lecho/v3"
+	"net/http"
 )
 
 func Init(logger zerolog.Logger) *echo.Echo {
 	e := echo.New()
 
 	e.Logger = lecho.From(logger)
+	e.HTTPErrorHandler = func(err error, ctx echo.Context) {
+		code := http.StatusInternalServerError
+
+		var httpError *echo.HTTPError
+		if errors.As(err, &httpError) {
+			code = httpError.Code
+		}
+
+		if code >= http.StatusInternalServerError {
+			handler.ErrorResponse(ctx, code, domain.ErrInternalServer, err)
+		}
+	}
+
 	e.Use(requestLoggerMiddleware(logger))
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
-		StackSize: 1 << 10,
-		LogLevel:  log.ERROR,
+		LogLevel: log.OFF,
 	}))
 
 	return e
