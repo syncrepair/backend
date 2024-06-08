@@ -28,9 +28,10 @@ func (h *UserHandler) Routes(router *echo.Group) {
 }
 
 type userSignUpRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	CompanyID string `json:"company_id"`
 }
 
 type userSignUpResponse struct {
@@ -45,9 +46,10 @@ func (h *UserHandler) SignUp(ctx echo.Context) error {
 	}
 
 	tokens, err := h.usecase.SignUp(util.Ctx(ctx), usecase.UserSignUpRequest{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
+		Name:      req.Name,
+		Email:     req.Email,
+		Password:  req.Password,
+		CompanyID: req.CompanyID,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUserAlreadyExists) {

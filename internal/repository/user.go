@@ -30,8 +30,8 @@ func NewUserRepository(db *pgxpool.Pool, sb squirrel.StatementBuilderType, table
 
 func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 	sql, args := r.sb.Insert(r.tableName).
-		Columns("id", "name", "email", "password", "is_confirmed").
-		Values(user.ID, user.Name, user.Email, user.Password, user.IsConfirmed).
+		Columns("id", "name", "email", "password", "company_id", "is_confirmed").
+		Values(user.ID, user.Name, user.Email, user.Password, user.CompanyID, user.IsConfirmed).
 		MustSql()
 
 	_, err := r.db.Exec(ctx, sql, args...)
@@ -47,7 +47,7 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 }
 
 func (r *userRepository) FindByCredentials(ctx context.Context, email string, password string) (domain.User, error) {
-	sql, args := r.sb.Select("id", "name", "email", "password", "is_confirmed").
+	sql, args := r.sb.Select("id", "name", "email", "password", "company_id", "is_confirmed").
 		From(r.tableName).
 		Where(squirrel.And{
 			squirrel.Eq{"email": email},
@@ -57,7 +57,7 @@ func (r *userRepository) FindByCredentials(ctx context.Context, email string, pa
 
 	var user domain.User
 
-	err := r.db.QueryRow(ctx, sql, args...).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.IsConfirmed)
+	err := r.db.QueryRow(ctx, sql, args...).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CompanyID, &user.IsConfirmed)
 	if err != nil {
 		if errors.Is(util.ParsePgErr(err), util.PgErrNotFound) {
 			return domain.User{}, domain.ErrUserNotFound

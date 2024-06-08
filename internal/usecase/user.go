@@ -26,9 +26,10 @@ func NewUserUsecase(repository repository.UserRepository, passwordHasher hasher.
 }
 
 type UserSignUpRequest struct {
-	Name     string
-	Email    string
-	Password string
+	Name      string
+	Email     string
+	Password  string
+	CompanyID string
 }
 
 func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (domain.UserTokens, error) {
@@ -37,6 +38,7 @@ func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (domai
 		Name:        req.Name,
 		Email:       req.Email,
 		Password:    uc.passwordHasher.Hash(req.Password),
+		CompanyID:   req.CompanyID,
 		IsConfirmed: false,
 	}); err != nil {
 		return domain.UserTokens{}, err

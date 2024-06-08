@@ -12,10 +12,11 @@ type User struct {
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`
+	CompanyID   string `json:"company_id"`
 	IsConfirmed bool   `json:"is_confirmed"`
 }
 
 type UserTokens struct {
-	AccessToken  string `json:"access_token" bson:"access_token"`
-	RefreshToken string `json:"refresh_token" bson:"refresh_token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
