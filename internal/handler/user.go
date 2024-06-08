@@ -27,22 +27,22 @@ func (h *UserHandler) Routes(router *echo.Group) {
 	}
 }
 
-type userSignUpInput struct {
+type userSignUpRequest struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func (h *UserHandler) SignUp(ctx echo.Context) error {
-	var input userSignUpInput
-	if err := ctx.Bind(&input); err != nil {
+	var req userSignUpRequest
+	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	tokens, err := h.usecase.SignUp(util.Ctx(ctx), usecase.UserSignUpInput{
-		Name:     input.Name,
-		Email:    input.Email,
-		Password: input.Password,
+	tokens, err := h.usecase.SignUp(util.Ctx(ctx), usecase.UserSignUpRequest{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUserAlreadyExists) {
@@ -55,20 +55,20 @@ func (h *UserHandler) SignUp(ctx echo.Context) error {
 	return SuccessResponse(ctx, http.StatusOK, tokens)
 }
 
-type userSignInInput struct {
+type userSignInRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func (h *UserHandler) SignIn(ctx echo.Context) error {
-	var input userSignInInput
-	if err := ctx.Bind(&input); err != nil {
+	var req userSignInRequest
+	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	tokens, err := h.usecase.SignIn(util.Ctx(ctx), usecase.UserSignInInput{
-		Email:    input.Email,
-		Password: input.Password,
+	tokens, err := h.usecase.SignIn(util.Ctx(ctx), usecase.UserSignInRequest{
+		Email:    req.Email,
+		Password: req.Password,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {

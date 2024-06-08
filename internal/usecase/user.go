@@ -9,8 +9,8 @@ import (
 )
 
 type UserUsecase interface {
-	SignUp(ctx context.Context, input UserSignUpInput) (domain.UserTokens, error)
-	SignIn(ctx context.Context, input UserSignInInput) (domain.UserTokens, error)
+	SignUp(ctx context.Context, req UserSignUpRequest) (domain.UserTokens, error)
+	SignIn(ctx context.Context, req UserSignInRequest) (domain.UserTokens, error)
 }
 
 type userUsecase struct {
@@ -25,18 +25,18 @@ func NewUserUsecase(repository repository.UserRepository, passwordHasher hasher.
 	}
 }
 
-type UserSignUpInput struct {
+type UserSignUpRequest struct {
 	Name     string
 	Email    string
 	Password string
 }
 
-func (uc *userUsecase) SignUp(ctx context.Context, input UserSignUpInput) (domain.UserTokens, error) {
+func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (domain.UserTokens, error) {
 	if err := uc.repository.Create(ctx, domain.User{
 		ID:          util.GenerateID(),
-		Name:        input.Name,
-		Email:       input.Email,
-		Password:    uc.passwordHasher.Hash(input.Password),
+		Name:        req.Name,
+		Email:       req.Email,
+		Password:    uc.passwordHasher.Hash(req.Password),
 		IsConfirmed: false,
 	}); err != nil {
 		return domain.UserTokens{}, err
@@ -47,13 +47,13 @@ func (uc *userUsecase) SignUp(ctx context.Context, input UserSignUpInput) (domai
 	return domain.UserTokens{}, nil
 }
 
-type UserSignInInput struct {
+type UserSignInRequest struct {
 	Email    string
 	Password string
 }
 
-func (uc *userUsecase) SignIn(ctx context.Context, input UserSignInInput) (domain.UserTokens, error) {
-	_, err := uc.repository.FindByCredentials(ctx, input.Email, uc.passwordHasher.Hash(input.Password))
+func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (domain.UserTokens, error) {
+	_, err := uc.repository.FindByCredentials(ctx, req.Email, uc.passwordHasher.Hash(req.Password))
 	if err != nil {
 		return domain.UserTokens{}, err
 	}

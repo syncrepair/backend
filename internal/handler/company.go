@@ -25,18 +25,18 @@ func (h *CompanyHandler) Routes(router *echo.Group) {
 	}
 }
 
-type companyCreateInput struct {
+type companyCreateRequest struct {
 	Name string `json:"name"`
 }
 
 func (h *CompanyHandler) Create(ctx echo.Context) error {
-	var input companyCreateInput
-	if err := ctx.Bind(&input); err != nil {
+	var req companyCreateRequest
+	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	id, err := h.usecase.Create(util.Ctx(ctx), usecase.CompanyCreateInput{
-		Name: input.Name,
+	id, err := h.usecase.Create(util.Ctx(ctx), usecase.CompanyCreateRequest{
+		Name: req.Name,
 	})
 	if err != nil {
 		return ErrorResponse(ctx, http.StatusInternalServerError, domain.ErrInternalServer, err)
