@@ -52,12 +52,16 @@ func main() {
 	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
 	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher)
 	userHandler := handler.NewUserHandler(userUsecase)
+	companyRepository := repository.NewCompanyRepository(postgresDB, postgresSB, "companies")
+	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
+	companyHandler := handler.NewCompanyHandler(companyUsecase)
 
 	r := router.Init(log)
 
 	apiGroup := r.Group("/api")
 	{
 		userHandler.Routes(apiGroup)
+		companyHandler.Routes(apiGroup)
 	}
 
 	log.Info().
