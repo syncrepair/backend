@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/syncrepair/backend/internal/domain"
 	"github.com/syncrepair/backend/internal/usecase"
-	"github.com/syncrepair/backend/internal/util"
 	"net/http"
 )
 
@@ -45,7 +44,7 @@ func (h *UserHandler) SignUp(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	tokens, err := h.usecase.SignUp(util.Ctx(ctx), usecase.UserSignUpRequest{
+	tokens, err := h.usecase.SignUp(Ctx(ctx), usecase.UserSignUpRequest{
 		Name:      req.Name,
 		Email:     req.Email,
 		Password:  req.Password,
@@ -81,7 +80,7 @@ func (h *UserHandler) SignIn(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	tokens, err := h.usecase.SignIn(util.Ctx(ctx), usecase.UserSignInRequest{
+	tokens, err := h.usecase.SignIn(Ctx(ctx), usecase.UserSignInRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	})

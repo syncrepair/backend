@@ -4,7 +4,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/syncrepair/backend/internal/domain"
 	"github.com/syncrepair/backend/internal/usecase"
-	"github.com/syncrepair/backend/internal/util"
 	"net/http"
 )
 
@@ -39,7 +38,7 @@ func (h *CompanyHandler) Create(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	id, err := h.usecase.Create(util.Ctx(ctx), usecase.CompanyCreateRequest{
+	id, err := h.usecase.Create(Ctx(ctx), usecase.CompanyCreateRequest{
 		Name: req.Name,
 	})
 	if err != nil {
