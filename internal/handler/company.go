@@ -29,6 +29,10 @@ type companyCreateRequest struct {
 	Name string `json:"name"`
 }
 
+type companyCreateResponse struct {
+	ID string `json:"id"`
+}
+
 func (h *CompanyHandler) Create(ctx echo.Context) error {
 	var req companyCreateRequest
 	if err := ctx.Bind(&req); err != nil {
@@ -42,5 +46,7 @@ func (h *CompanyHandler) Create(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusInternalServerError, domain.ErrInternalServer, err)
 	}
 
-	return SuccessResponse(ctx, http.StatusOK, id)
+	return SuccessResponse(ctx, http.StatusOK, companyCreateResponse{
+		ID: id,
+	})
 }

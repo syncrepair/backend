@@ -33,6 +33,11 @@ type userSignUpRequest struct {
 	Password string `json:"password"`
 }
 
+type userSignUpResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 func (h *UserHandler) SignUp(ctx echo.Context) error {
 	var req userSignUpRequest
 	if err := ctx.Bind(&req); err != nil {
@@ -52,12 +57,20 @@ func (h *UserHandler) SignUp(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusInternalServerError, domain.ErrInternalServer, err)
 	}
 
-	return SuccessResponse(ctx, http.StatusOK, tokens)
+	return SuccessResponse(ctx, http.StatusOK, userSignUpResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	})
 }
 
 type userSignInRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type userSignInResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (h *UserHandler) SignIn(ctx echo.Context) error {
@@ -78,5 +91,8 @@ func (h *UserHandler) SignIn(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusInternalServerError, domain.ErrInternalServer, err)
 	}
 
-	return SuccessResponse(ctx, http.StatusOK, tokens)
+	return SuccessResponse(ctx, http.StatusOK, userSignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	})
 }
