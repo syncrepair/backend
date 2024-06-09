@@ -24,7 +24,7 @@ func NewRouter(logger zerolog.Logger) *echo.Echo {
 		}
 
 		if code >= http.StatusInternalServerError {
-			ErrorResponse(ctx, code, domain.ErrInternalServer, err)
+			ErrorResponse(ctx, code, domain.ErrInternalServer, err) // TODO: change router logic
 		}
 	}
 
