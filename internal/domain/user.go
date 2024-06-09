@@ -15,8 +15,3 @@ type User struct {
 	CompanyID   string `json:"company_id"`
 	IsConfirmed bool   `json:"is_confirmed"`
 }
-
-type UserTokens struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}

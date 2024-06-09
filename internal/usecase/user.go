@@ -5,23 +5,26 @@ import (
 	"github.com/syncrepair/backend/internal/domain"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/util"
+	"github.com/syncrepair/backend/pkg/auth"
 	"github.com/syncrepair/backend/pkg/hasher"
 )
 
 type UserUsecase interface {
-	SignUp(ctx context.Context, req UserSignUpRequest) (domain.UserTokens, error)
-	SignIn(ctx context.Context, req UserSignInRequest) (domain.UserTokens, error)
+	SignUp(ctx context.Context, req UserSignUpRequest) (string, error)
+	SignIn(ctx context.Context, req UserSignInRequest) (string, error)
 }
 
 type userUsecase struct {
 	repository     repository.UserRepository
 	passwordHasher hasher.Hasher
+	jwtManager     auth.JWTManager
 }
 
-func NewUserUsecase(repository repository.UserRepository, passwordHasher hasher.Hasher) UserUsecase {
+func NewUserUsecase(repository repository.UserRepository, passwordHasher hasher.Hasher, jwtManager auth.JWTManager) UserUsecase {
 	return &userUsecase{
 		repository:     repository,
 		passwordHasher: passwordHasher,
+		jwtManager:     jwtManager,
 	}
 }
 
@@ -32,21 +35,21 @@ type UserSignUpRequest struct {
 	CompanyID string
 }
 
-func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (domain.UserTokens, error) {
+func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (string, error) {
+	id := util.GenerateID()
+
 	if err := uc.repository.Create(ctx, domain.User{
-		ID:          util.GenerateID(),
+		ID:          id,
 		Name:        req.Name,
 		Email:       req.Email,
 		Password:    uc.passwordHasher.Hash(req.Password),
 		CompanyID:   req.CompanyID,
 		IsConfirmed: false,
 	}); err != nil {
-		return domain.UserTokens{}, err
+		return "", err
 	}
 
-	// TODO: generating JWT
-
-	return domain.UserTokens{}, nil
+	return uc.jwtManager.GenerateToken(id), nil
 }
 
 type UserSignInRequest struct {
@@ -54,13 +57,11 @@ type UserSignInRequest struct {
 	Password string
 }
 
-func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (domain.UserTokens, error) {
-	_, err := uc.repository.FindByCredentials(ctx, req.Email, uc.passwordHasher.Hash(req.Password))
+func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (string, error) {
+	user, err := uc.repository.FindByCredentials(ctx, req.Email, uc.passwordHasher.Hash(req.Password))
 	if err != nil {
-		return domain.UserTokens{}, err
+		return "", err
 	}
 
-	// TODO: generating JWT
-
-	return domain.UserTokens{}, nil
+	return uc.jwtManager.GenerateToken(user.ID), nil
 }

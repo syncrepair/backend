@@ -34,8 +34,7 @@ type userSignUpRequest struct {
 }
 
 type userSignUpResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	Token string `json:"token"`
 }
 
 func (h *UserHandler) SignUp(ctx echo.Context) error {
@@ -44,7 +43,7 @@ func (h *UserHandler) SignUp(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	tokens, err := h.usecase.SignUp(Ctx(ctx), usecase.UserSignUpRequest{
+	token, err := h.usecase.SignUp(Ctx(ctx), usecase.UserSignUpRequest{
 		Name:      req.Name,
 		Email:     req.Email,
 		Password:  req.Password,
@@ -59,8 +58,7 @@ func (h *UserHandler) SignUp(ctx echo.Context) error {
 	}
 
 	return SuccessResponse(ctx, http.StatusOK, userSignUpResponse{
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
+		Token: token,
 	})
 }
 
@@ -70,8 +68,7 @@ type userSignInRequest struct {
 }
 
 type userSignInResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	Token string `json:"token"`
 }
 
 func (h *UserHandler) SignIn(ctx echo.Context) error {
@@ -80,7 +77,7 @@ func (h *UserHandler) SignIn(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	tokens, err := h.usecase.SignIn(Ctx(ctx), usecase.UserSignInRequest{
+	token, err := h.usecase.SignIn(Ctx(ctx), usecase.UserSignInRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -93,7 +90,6 @@ func (h *UserHandler) SignIn(ctx echo.Context) error {
 	}
 
 	return SuccessResponse(ctx, http.StatusOK, userSignInResponse{
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
+		Token: token,
 	})
 }

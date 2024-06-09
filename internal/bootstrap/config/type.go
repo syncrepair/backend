@@ -23,6 +23,11 @@ type Config struct {
 	} `yaml:"postgres" env-required:"true"`
 
 	Auth struct {
+		JWT struct {
+			Key string        `yaml:"key" env:"AUTH_JWT_KEY" env-required:"true"`
+			TTL time.Duration `yaml:"ttl" env:"AUTH_JWT_TTL" env-required:"true"`
+		} `yaml:"jwt" env-required:"true"`
+
 		PasswordSalt string `yaml:"password_salt" env:"AUTH_PASSWORD_SALT" env-required:"true"`
 	} `yaml:"auth" env-required:"true"`
 }

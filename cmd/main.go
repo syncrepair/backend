@@ -11,6 +11,7 @@ import (
 	"github.com/syncrepair/backend/internal/handler"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
+	"github.com/syncrepair/backend/pkg/auth"
 	"github.com/syncrepair/backend/pkg/hasher"
 	"os"
 	"os/signal"
@@ -48,9 +49,10 @@ func main() {
 	postgresSB := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	passwordHasher := hasher.NewPasswordHasher(cfg.Auth.PasswordSalt)
+	jwtManager := auth.NewJWTManager(cfg.Auth.JWT.Key, cfg.Auth.JWT.TTL)
 
 	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
-	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher)
+	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, jwtManager)
 	userHandler := handler.NewUserHandler(userUsecase)
 	companyRepository := repository.NewCompanyRepository(postgresDB, postgresSB, "companies")
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
