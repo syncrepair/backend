@@ -6,7 +6,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Init(cfg Config) *pgxpool.Pool {
+type Config struct {
+	Username string
+	Password string
+	Host     string
+	Port     int
+	Database string
+}
+
+func New(cfg Config) *pgxpool.Pool {
 	ctx := context.Background()
 
 	pool, err := pgxpool.New(ctx, fmt.Sprintf(

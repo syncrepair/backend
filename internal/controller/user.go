@@ -1,4 +1,4 @@
-package handler
+package controller
 
 import (
 	"errors"
@@ -8,17 +8,17 @@ import (
 	"net/http"
 )
 
-type UserHandler struct {
+type UserController struct {
 	usecase usecase.UserUsecase
 }
 
-func NewUserHandler(usecase usecase.UserUsecase) *UserHandler {
-	return &UserHandler{
+func NewUserController(usecase usecase.UserUsecase) *UserController {
+	return &UserController{
 		usecase: usecase,
 	}
 }
 
-func (h *UserHandler) Routes(router *echo.Group) {
+func (h *UserController) InitRoutes(router *echo.Group) {
 	users := router.Group("/users")
 	{
 		users.POST("/signup", h.SignUp)
@@ -37,7 +37,7 @@ type userSignUpResponse struct {
 	Token string `json:"token"`
 }
 
-func (h *UserHandler) SignUp(ctx echo.Context) error {
+func (h *UserController) SignUp(ctx echo.Context) error {
 	var req userSignUpRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
@@ -71,7 +71,7 @@ type userSignInResponse struct {
 	Token string `json:"token"`
 }
 
-func (h *UserHandler) SignIn(ctx echo.Context) error {
+func (h *UserController) SignIn(ctx echo.Context) error {
 	var req userSignInRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)

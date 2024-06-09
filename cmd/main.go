@@ -3,15 +3,14 @@ package main
 import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/syncrepair/backend/internal/bootstrap/config"
-	"github.com/syncrepair/backend/internal/bootstrap/logger"
-	"github.com/syncrepair/backend/internal/bootstrap/postgres"
-	"github.com/syncrepair/backend/internal/bootstrap/router"
-	"github.com/syncrepair/backend/internal/bootstrap/server"
-	"github.com/syncrepair/backend/internal/handler"
+	"github.com/syncrepair/backend/internal/config"
+	"github.com/syncrepair/backend/internal/controller"
+	"github.com/syncrepair/backend/internal/logger"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/auth"
+	"github.com/syncrepair/backend/pkg/postgres"
+	"github.com/syncrepair/backend/pkg/server"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,7 +29,7 @@ func main() {
 	log.Info().
 		Msg("Connecting to postgres database")
 
-	postgresDB := postgres.Init(postgres.Config{
+	postgresDB := postgres.New(postgres.Config{
 		Username: cfg.Postgres.Username,
 		Password: cfg.Postgres.Password,
 		Host:     cfg.Postgres.Host,
@@ -50,19 +49,19 @@ func main() {
 	passwordHasher := auth.NewPasswordHasher(cfg.Auth.PasswordSalt)
 	jwtManager := auth.NewJWTManager(cfg.Auth.JWT.Key, cfg.Auth.JWT.TTL)
 
-	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
+	userRepository := repository.NewUserRepository(nil, postgresSB, "users")
 	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, jwtManager)
-	userHandler := handler.NewUserHandler(userUsecase)
-	companyRepository := repository.NewCompanyRepository(postgresDB, postgresSB, "companies")
+	userController := controller.NewUserController(userUsecase)
+	companyRepository := repository.NewCompanyRepository(nil, postgresSB, "companies")
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
-	companyHandler := handler.NewCompanyHandler(companyUsecase)
+	companyController := controller.NewCompanyController(companyUsecase)
 
-	r := router.Init(log)
+	r := controller.NewRouter(log)
 
 	apiGroup := r.Group("/api")
 	{
-		userHandler.Routes(apiGroup)
-		companyHandler.Routes(apiGroup)
+		userController.InitRoutes(apiGroup)
+		companyController.InitRoutes(apiGroup)
 	}
 
 	log.Info().

@@ -1,4 +1,4 @@
-package router
+package controller
 
 import (
 	"errors"
@@ -7,12 +7,11 @@ import (
 	"github.com/labstack/gommon/log"
 	"github.com/rs/zerolog"
 	"github.com/syncrepair/backend/internal/domain"
-	"github.com/syncrepair/backend/internal/handler"
 	"github.com/ziflex/lecho/v3"
 	"net/http"
 )
 
-func Init(logger zerolog.Logger) *echo.Echo {
+func NewRouter(logger zerolog.Logger) *echo.Echo {
 	e := echo.New()
 
 	e.Logger = lecho.From(logger)
@@ -25,7 +24,7 @@ func Init(logger zerolog.Logger) *echo.Echo {
 		}
 
 		if code >= http.StatusInternalServerError {
-			handler.ErrorResponse(ctx, code, domain.ErrInternalServer, err)
+			ErrorResponse(ctx, code, domain.ErrInternalServer, err)
 		}
 	}
 

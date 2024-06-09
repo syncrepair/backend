@@ -1,4 +1,4 @@
-package handler
+package controller
 
 import (
 	"github.com/labstack/echo/v4"
@@ -7,17 +7,17 @@ import (
 	"net/http"
 )
 
-type CompanyHandler struct {
+type CompanyController struct {
 	usecase usecase.CompanyUsecase
 }
 
-func NewCompanyHandler(usecase usecase.CompanyUsecase) *CompanyHandler {
-	return &CompanyHandler{
+func NewCompanyController(usecase usecase.CompanyUsecase) *CompanyController {
+	return &CompanyController{
 		usecase: usecase,
 	}
 }
 
-func (h *CompanyHandler) Routes(router *echo.Group) {
+func (h *CompanyController) InitRoutes(router *echo.Group) {
 	companies := router.Group("/companies")
 	{
 		companies.POST("", h.Create)
@@ -32,7 +32,7 @@ type companyCreateResponse struct {
 	ID string `json:"id"`
 }
 
-func (h *CompanyHandler) Create(ctx echo.Context) error {
+func (h *CompanyController) Create(ctx echo.Context) error {
 	var req companyCreateRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
