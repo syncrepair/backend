@@ -12,7 +12,6 @@ import (
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/auth"
-	"github.com/syncrepair/backend/pkg/hasher"
 	"os"
 	"os/signal"
 	"syscall"
@@ -48,7 +47,7 @@ func main() {
 
 	postgresSB := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	passwordHasher := hasher.NewPasswordHasher(cfg.Auth.PasswordSalt)
+	passwordHasher := auth.NewPasswordHasher(cfg.Auth.PasswordSalt)
 	jwtManager := auth.NewJWTManager(cfg.Auth.JWT.Key, cfg.Auth.JWT.TTL)
 
 	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")

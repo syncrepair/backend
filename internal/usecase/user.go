@@ -6,7 +6,6 @@ import (
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/util"
 	"github.com/syncrepair/backend/pkg/auth"
-	"github.com/syncrepair/backend/pkg/hasher"
 )
 
 type UserUsecase interface {
@@ -16,11 +15,11 @@ type UserUsecase interface {
 
 type userUsecase struct {
 	repository     repository.UserRepository
-	passwordHasher hasher.Hasher
+	passwordHasher auth.PasswordHasher
 	jwtManager     auth.JWTManager
 }
 
-func NewUserUsecase(repository repository.UserRepository, passwordHasher hasher.Hasher, jwtManager auth.JWTManager) UserUsecase {
+func NewUserUsecase(repository repository.UserRepository, passwordHasher auth.PasswordHasher, jwtManager auth.JWTManager) UserUsecase {
 	return &userUsecase{
 		repository:     repository,
 		passwordHasher: passwordHasher,

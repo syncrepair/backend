@@ -1,15 +1,20 @@
-package hasher
+package auth
 
 import (
 	"crypto/sha256"
 	"encoding/hex"
 )
 
+type PasswordHasher interface {
+	Hash(string) string
+	Check(string, string) bool
+}
+
 type passwordHasher struct {
 	salt string
 }
 
-func NewPasswordHasher(salt string) Hasher {
+func NewPasswordHasher(salt string) PasswordHasher {
 	return &passwordHasher{
 		salt: salt,
 	}
