@@ -5,20 +5,21 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/syncrepair/backend/internal/config"
 	"github.com/syncrepair/backend/internal/controller"
-	"github.com/syncrepair/backend/internal/logger"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/auth"
 	"github.com/syncrepair/backend/pkg/http"
+	"github.com/syncrepair/backend/pkg/logger"
 	"github.com/syncrepair/backend/pkg/postgres"
 )
 
 func main() {
 	ctx := context.Background()
 
-	cfg := config.Init()
+	cfg := config.Load()
 
-	log := logger.Init()
+	log := logger.New(cfg.App.Env, config.DevEnv, config.ProdEnv)
+
 	log.Info().
 		Msgf("🚀 Starting %s", cfg.App.Name)
 
