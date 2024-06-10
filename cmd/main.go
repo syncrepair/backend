@@ -9,12 +9,8 @@ import (
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/auth"
+	"github.com/syncrepair/backend/pkg/http"
 	"github.com/syncrepair/backend/pkg/postgres"
-	"github.com/syncrepair/backend/pkg/server"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func main() {
@@ -64,39 +60,14 @@ func main() {
 		companyController.InitRoutes(apiGroup)
 	}
 
-	log.Info().
-		Str("address", cfg.HTTP.Address).
-		Msg("Starting HTTP server")
-
-	srv := server.Init(server.Config{
+	httpServer := http.NewServer(http.ServerConfig{
 		Handler:      r,
 		Addr:         cfg.HTTP.Address,
 		ReadTimeout:  cfg.HTTP.ReadTimeout,
 		WriteTimeout: cfg.HTTP.WriteTimeout,
 		IdleTimeout:  cfg.HTTP.IdleTimeout,
+		Logger:       log,
 	})
 
-	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Fatal().
-				Err(err).
-				Msg("error starting http server")
-		}
-	}()
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-
-	<-quit
-
-	ctxTimeout, shutdown := context.WithTimeout(ctx, 5*time.Second)
-	defer shutdown()
-
-	defer func() {
-		if err := srv.Shutdown(ctxTimeout); err != nil {
-			log.Fatal().
-				Err(err).
-				Msg("error shutting down http server")
-		}
-	}()
+	httpServer.StartWithGracefulShutdown(ctx)
 }
