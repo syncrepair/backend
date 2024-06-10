@@ -18,7 +18,7 @@ func NewUserController(usecase usecase.UserUsecase) *UserController {
 	}
 }
 
-func (h *UserController) InitRoutes(router *echo.Group) {
+func (h *UserController) Routes(router *echo.Group) {
 	users := router.Group("/users")
 	{
 		users.POST("/signup", h.SignUp)

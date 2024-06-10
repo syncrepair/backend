@@ -46,23 +46,23 @@ func main() {
 	passwordHasher := auth.NewPasswordHasher(cfg.Auth.PasswordSalt)
 	jwtManager := auth.NewJWTManager(cfg.Auth.JWT.Key, cfg.Auth.JWT.TTL)
 
-	userRepository := repository.NewUserRepository(nil, postgresSB, "users")
+	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
 	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, jwtManager)
 	userController := controller.NewUserController(userUsecase)
-	companyRepository := repository.NewCompanyRepository(nil, postgresSB, "companies")
+	companyRepository := repository.NewCompanyRepository(postgresDB, postgresSB, "companies")
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
 	companyController := controller.NewCompanyController(companyUsecase)
 
-	r := controller.NewRouter(log)
+	router := controller.NewRouter(log)
 
-	apiGroup := r.Group("/api")
+	publicRouter := router.Group("/api")
 	{
-		userController.InitRoutes(apiGroup)
-		companyController.InitRoutes(apiGroup)
+		userController.Routes(publicRouter)
+		companyController.Routes(publicRouter)
 	}
 
 	httpServer := http.NewServer(http.ServerConfig{
-		Handler:      r,
+		Handler:      router,
 		Addr:         cfg.HTTP.Address,
 		ReadTimeout:  cfg.HTTP.ReadTimeout,
 		WriteTimeout: cfg.HTTP.WriteTimeout,

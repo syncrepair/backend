@@ -17,7 +17,7 @@ func NewCompanyController(usecase usecase.CompanyUsecase) *CompanyController {
 	}
 }
 
-func (h *CompanyController) InitRoutes(router *echo.Group) {
+func (h *CompanyController) Routes(router *echo.Group) {
 	companies := router.Group("/companies")
 	{
 		companies.POST("", h.Create)
