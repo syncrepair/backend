@@ -32,13 +32,20 @@ type Config struct {
 		Database string `yaml:"database" env:"POSTGRES_DATABASE" env-required:"true"`
 	} `yaml:"postgres" env-required:"true"`
 
-	Auth struct {
-		JWT struct {
-			Key string        `yaml:"key" env:"AUTH_JWT_KEY" env-required:"true"`
-			TTL time.Duration `yaml:"ttl" env:"AUTH_JWT_TTL" env-required:"true"`
-		} `yaml:"jwt" env-required:"true"`
+	Redis struct {
+		URL string `yaml:"url" env:"REDIS_URL" env-required:"true"`
+	} `yaml:"redis" env-required:"true"`
 
-		PasswordSalt string `yaml:"password_salt" env:"AUTH_PASSWORD_SALT" env-required:"true"`
+	Auth struct {
+		Tokens struct {
+			AccessTokenKey  string        `yaml:"access_token_key" env:"AUTH_TOKENS_ACCESS_TOKEN_KEY" env-required:"true"`
+			AccessTokenTTL  time.Duration `yaml:"access_token_ttl" env:"AUTH_TOKENS_ACCESS_TOKEN_TTL" env-required:"true"`
+			RefreshTokenTTL time.Duration `yaml:"refresh_token_ttl" env:"AUTH_TOKENS_REFRESH_TOKEN_TTL" env-required:"true"`
+		} `yaml:"tokens" env-required:"true"`
+
+		Password struct {
+			Salt string `yaml:"salt" env:"AUTH_PASSWORD_SALT" env-required:"true"`
+		} `yaml:"password" env-required:"true"`
 	} `yaml:"auth" env-required:"true"`
 }
 

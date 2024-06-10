@@ -11,6 +11,7 @@ import (
 	"github.com/syncrepair/backend/pkg/http"
 	"github.com/syncrepair/backend/pkg/logger"
 	"github.com/syncrepair/backend/pkg/postgres"
+	"github.com/syncrepair/backend/pkg/redis"
 )
 
 func main() {
@@ -43,11 +44,14 @@ func main() {
 
 	postgresSB := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	passwordHasher := auth.NewPasswordHasher(cfg.Auth.PasswordSalt)
-	tokensManager := auth.NewTokensManager(cfg.Auth.JWT.Key, cfg.Auth.JWT.TTL)
+	redisDB := redis.New(cfg.Redis.URL)
+	defer redisDB.Close()
+
+	passwordHasher := auth.NewPasswordHasher(cfg.Auth.Password.Salt)
+	tokensManager := auth.NewTokensManager(cfg.Auth.Tokens.AccessTokenKey, cfg.Auth.Tokens.AccessTokenTTL)
 
 	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
-	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, tokensManager)
+	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, tokensManager, redisDB, cfg.Auth.Tokens.RefreshTokenTTL)
 	userController := controller.NewUserController(userUsecase)
 	companyRepository := repository.NewCompanyRepository(postgresDB, postgresSB, "companies")
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)

@@ -6,24 +6,31 @@ import (
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/util"
 	"github.com/syncrepair/backend/pkg/auth"
+	"github.com/syncrepair/backend/pkg/redis"
+	"time"
 )
 
 type UserUsecase interface {
 	SignUp(ctx context.Context, req UserSignUpRequest) (UserTokens, error)
 	SignIn(ctx context.Context, req UserSignInRequest) (UserTokens, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (UserTokens, error)
 }
 
 type userUsecase struct {
-	repository     repository.UserRepository
-	passwordHasher auth.PasswordHasher
-	tokensManager  auth.TokensManager
+	repository      repository.UserRepository
+	passwordHasher  auth.PasswordHasher
+	tokensManager   auth.TokensManager
+	redisDB         *redis.Redis
+	refreshTokenTTL time.Duration
 }
 
-func NewUserUsecase(repository repository.UserRepository, passwordHasher auth.PasswordHasher, tokensManager auth.TokensManager) UserUsecase {
+func NewUserUsecase(repository repository.UserRepository, passwordHasher auth.PasswordHasher, tokensManager auth.TokensManager, redisDB *redis.Redis, refreshTokenTTL time.Duration) UserUsecase {
 	return &userUsecase{
-		repository:     repository,
-		passwordHasher: passwordHasher,
-		tokensManager:  tokensManager,
+		repository:      repository,
+		passwordHasher:  passwordHasher,
+		tokensManager:   tokensManager,
+		redisDB:         redisDB,
+		refreshTokenTTL: refreshTokenTTL,
 	}
 }
 
@@ -48,12 +55,7 @@ func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (UserT
 		return UserTokens{}, err
 	}
 
-	tokens, err := uc.generateTokens(id)
-	if err != nil {
-		return UserTokens{}, err
-	}
-
-	return tokens, nil
+	return uc.createSession(ctx, id)
 }
 
 type UserSignInRequest struct {
@@ -67,12 +69,17 @@ func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (UserT
 		return UserTokens{}, err
 	}
 
-	tokens, err := uc.generateTokens(user.ID)
-	if err != nil {
+	return uc.createSession(ctx, user.ID)
+}
+
+func (uc *userUsecase) RefreshTokens(ctx context.Context, refreshToken string) (UserTokens, error) {
+	var userID string
+
+	if err := uc.redisDB.Get(ctx, refreshToken).Scan(&userID); err != nil {
 		return UserTokens{}, err
 	}
 
-	return tokens, nil
+	return uc.createSession(ctx, userID)
 }
 
 type UserTokens struct {
@@ -80,8 +87,8 @@ type UserTokens struct {
 	RefreshToken string
 }
 
-func (uc *userUsecase) generateTokens(id string) (UserTokens, error) {
-	accessToken, err := uc.tokensManager.NewAccessToken(id)
+func (uc *userUsecase) createSession(ctx context.Context, userID string) (UserTokens, error) {
+	accessToken, err := uc.tokensManager.NewAccessToken(userID)
 	if err != nil {
 		return UserTokens{}, err
 	}
@@ -91,7 +98,7 @@ func (uc *userUsecase) generateTokens(id string) (UserTokens, error) {
 		return UserTokens{}, err
 	}
 
-	// TODO: storing sessions in db
+	uc.redisDB.Set(ctx, refreshToken, userID, uc.refreshTokenTTL)
 
 	return UserTokens{
 		AccessToken:  accessToken,

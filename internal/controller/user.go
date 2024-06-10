@@ -21,8 +21,9 @@ func NewUserController(usecase usecase.UserUsecase) *UserController {
 func (h *UserController) Routes(router *echo.Group) {
 	users := router.Group("/users")
 	{
-		users.POST("/signup", h.SignUp)
-		users.POST("/signin", h.SignIn)
+		users.POST("/sign-up", h.SignUp)
+		users.POST("/sign-in", h.SignIn)
+		users.POST("/refresh-tokens", h.RefreshTokens)
 	}
 }
 
@@ -93,6 +94,32 @@ func (h *UserController) SignIn(ctx echo.Context) error {
 	}
 
 	return SuccessResponse(ctx, http.StatusOK, userSignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	})
+}
+
+type userRefreshTokensRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+type userRefreshTokensResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (h *UserController) RefreshTokens(ctx echo.Context) error {
+	var req userRefreshTokensRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	tokens, err := h.usecase.RefreshTokens(ctx.Request().Context(), req.RefreshToken)
+	if err != nil {
+		return ErrorResponse(ctx, http.StatusInternalServerError, err)
+	}
+
+	return SuccessResponse(ctx, http.StatusOK, userRefreshTokensResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	})

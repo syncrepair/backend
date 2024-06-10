@@ -5,5 +5,6 @@ http:
   idle_timeout: 60s
 
 auth:
-  jwt:
-    ttl: 168h
+  tokens:
+    access_token_ttl: 1h
+    refresh_token_ttl: 720h

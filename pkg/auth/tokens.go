@@ -13,14 +13,14 @@ type TokensManager interface {
 }
 
 type tokensManager struct {
-	key string
-	ttl time.Duration
+	accessTokenKey string
+	accessTokenTTL time.Duration
 }
 
-func NewTokensManager(key string, ttl time.Duration) TokensManager {
+func NewTokensManager(accessTokenKey string, accessTokenTTL time.Duration) TokensManager {
 	return &tokensManager{
-		key: key,
-		ttl: ttl,
+		accessTokenKey: accessTokenKey,
+		accessTokenTTL: accessTokenTTL,
 	}
 }
 
@@ -28,10 +28,10 @@ func (m *tokensManager) NewAccessToken(id string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"sub": id,
-			"exp": time.Now().Add(m.ttl).Unix(),
+			"exp": time.Now().Add(m.accessTokenTTL).Unix(),
 		})
 
-	tokenString, err := token.SignedString([]byte(m.key))
+	tokenString, err := token.SignedString([]byte(m.accessTokenKey))
 	if err != nil {
 		return "", err
 	}
