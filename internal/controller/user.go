@@ -54,7 +54,7 @@ func (h *UserController) SignUp(ctx echo.Context) error {
 			return ErrorResponse(ctx, http.StatusConflict, domain.ErrUserAlreadyExists)
 		}
 
-		return ErrorResponse(ctx, http.StatusInternalServerError, domain.ErrInternalServer, err)
+		return ErrorResponse(ctx, http.StatusInternalServerError, err)
 	}
 
 	return SuccessResponse(ctx, http.StatusOK, userSignUpResponse{
@@ -86,7 +86,7 @@ func (h *UserController) SignIn(ctx echo.Context) error {
 			return ErrorResponse(ctx, http.StatusNotFound, domain.ErrUserNotFound)
 		}
 
-		return ErrorResponse(ctx, http.StatusInternalServerError, domain.ErrInternalServer, err)
+		return ErrorResponse(ctx, http.StatusInternalServerError, err)
 	}
 
 	return SuccessResponse(ctx, http.StatusOK, userSignInResponse{

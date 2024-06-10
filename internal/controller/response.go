@@ -2,6 +2,9 @@ package controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
+	"github.com/syncrepair/backend/internal/domain"
+	"net/http"
 )
 
 type successResponse struct {
@@ -14,7 +17,7 @@ type errorResponse struct {
 	Message string `json:"message"`
 }
 
-func SuccessResponse(ctx echo.Context, code int, data ...interface{}) error {
+func SuccessResponse(ctx echo.Context, statusCode int, data ...interface{}) error {
 	res := successResponse{
 		Status: "success",
 	}
@@ -25,14 +28,21 @@ func SuccessResponse(ctx echo.Context, code int, data ...interface{}) error {
 		res.Data = data
 	}
 
-	return ctx.JSON(code, res)
+	return ctx.JSON(statusCode, res)
 }
 
-func ErrorResponse(ctx echo.Context, code int, err error, appErr ...error) error {
+func ErrorResponse(ctx echo.Context, statusCode int, err error) error {
 	res := errorResponse{
 		Status:  "error",
 		Message: err.Error(),
 	}
 
-	return ctx.JSON(code, res)
+	if statusCode >= http.StatusInternalServerError {
+		res.Message = domain.ErrInternalServer.Error()
+		log.Error().
+			Err(err).
+			Msg("server error")
+	}
+
+	return ctx.JSON(statusCode, res)
 }

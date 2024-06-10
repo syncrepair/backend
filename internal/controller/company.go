@@ -42,7 +42,7 @@ func (h *CompanyController) Create(ctx echo.Context) error {
 		Name: req.Name,
 	})
 	if err != nil {
-		return ErrorResponse(ctx, http.StatusInternalServerError, domain.ErrInternalServer, err)
+		return ErrorResponse(ctx, http.StatusInternalServerError, err)
 	}
 
 	return SuccessResponse(ctx, http.StatusOK, companyCreateResponse{
