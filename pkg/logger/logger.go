@@ -2,6 +2,7 @@ package logger
 
 import (
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"os"
 	"time"
 )
@@ -17,6 +18,8 @@ func New(env, devEnv, prodEnv string) zerolog.Logger {
 	default:
 		l = prodEnvLogger()
 	}
+
+	log.Logger = l
 
 	return l
 }
