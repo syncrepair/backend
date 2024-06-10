@@ -38,7 +38,7 @@ func (h *CompanyController) Create(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	id, err := h.usecase.Create(Ctx(ctx), usecase.CompanyCreateRequest{
+	id, err := h.usecase.Create(ctx.Request().Context(), usecase.CompanyCreateRequest{
 		Name: req.Name,
 	})
 	if err != nil {

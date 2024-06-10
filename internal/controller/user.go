@@ -43,7 +43,7 @@ func (h *UserController) SignUp(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	token, err := h.usecase.SignUp(Ctx(ctx), usecase.UserSignUpRequest{
+	token, err := h.usecase.SignUp(ctx.Request().Context(), usecase.UserSignUpRequest{
 		Name:      req.Name,
 		Email:     req.Email,
 		Password:  req.Password,
@@ -77,7 +77,7 @@ func (h *UserController) SignIn(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	token, err := h.usecase.SignIn(Ctx(ctx), usecase.UserSignInRequest{
+	token, err := h.usecase.SignIn(ctx.Request().Context(), usecase.UserSignInRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	})
