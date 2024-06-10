@@ -9,21 +9,21 @@ import (
 )
 
 type UserUsecase interface {
-	SignUp(ctx context.Context, req UserSignUpRequest) (string, error)
-	SignIn(ctx context.Context, req UserSignInRequest) (string, error)
+	SignUp(ctx context.Context, req UserSignUpRequest) (UserTokens, error)
+	SignIn(ctx context.Context, req UserSignInRequest) (UserTokens, error)
 }
 
 type userUsecase struct {
 	repository     repository.UserRepository
 	passwordHasher auth.PasswordHasher
-	jwtManager     auth.JWTManager
+	tokensManager  auth.TokensManager
 }
 
-func NewUserUsecase(repository repository.UserRepository, passwordHasher auth.PasswordHasher, jwtManager auth.JWTManager) UserUsecase {
+func NewUserUsecase(repository repository.UserRepository, passwordHasher auth.PasswordHasher, tokensManager auth.TokensManager) UserUsecase {
 	return &userUsecase{
 		repository:     repository,
 		passwordHasher: passwordHasher,
-		jwtManager:     jwtManager,
+		tokensManager:  tokensManager,
 	}
 }
 
@@ -34,7 +34,7 @@ type UserSignUpRequest struct {
 	CompanyID string
 }
 
-func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (string, error) {
+func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (UserTokens, error) {
 	id := util.GenerateID()
 
 	if err := uc.repository.Create(ctx, domain.User{
@@ -45,10 +45,15 @@ func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (strin
 		CompanyID:   req.CompanyID,
 		IsConfirmed: false,
 	}); err != nil {
-		return "", err
+		return UserTokens{}, err
 	}
 
-	return uc.jwtManager.GenerateToken(id), nil
+	tokens, err := uc.generateTokens(id)
+	if err != nil {
+		return UserTokens{}, err
+	}
+
+	return tokens, nil
 }
 
 type UserSignInRequest struct {
@@ -56,11 +61,40 @@ type UserSignInRequest struct {
 	Password string
 }
 
-func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (string, error) {
+func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (UserTokens, error) {
 	user, err := uc.repository.FindByCredentials(ctx, req.Email, uc.passwordHasher.Hash(req.Password))
 	if err != nil {
-		return "", err
+		return UserTokens{}, err
 	}
 
-	return uc.jwtManager.GenerateToken(user.ID), nil
+	tokens, err := uc.generateTokens(user.ID)
+	if err != nil {
+		return UserTokens{}, err
+	}
+
+	return tokens, nil
+}
+
+type UserTokens struct {
+	AccessToken  string
+	RefreshToken string
+}
+
+func (uc *userUsecase) generateTokens(id string) (UserTokens, error) {
+	accessToken, err := uc.tokensManager.NewAccessToken(id)
+	if err != nil {
+		return UserTokens{}, err
+	}
+
+	refreshToken, err := uc.tokensManager.NewRefreshToken()
+	if err != nil {
+		return UserTokens{}, err
+	}
+
+	// TODO: storing sessions in db
+
+	return UserTokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }

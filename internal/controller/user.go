@@ -34,7 +34,8 @@ type userSignUpRequest struct {
 }
 
 type userSignUpResponse struct {
-	Token string `json:"token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (h *UserController) SignUp(ctx echo.Context) error {
@@ -43,7 +44,7 @@ func (h *UserController) SignUp(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	token, err := h.usecase.SignUp(ctx.Request().Context(), usecase.UserSignUpRequest{
+	tokens, err := h.usecase.SignUp(ctx.Request().Context(), usecase.UserSignUpRequest{
 		Name:      req.Name,
 		Email:     req.Email,
 		Password:  req.Password,
@@ -58,7 +59,8 @@ func (h *UserController) SignUp(ctx echo.Context) error {
 	}
 
 	return SuccessResponse(ctx, http.StatusOK, userSignUpResponse{
-		Token: token,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 	})
 }
 
@@ -68,7 +70,8 @@ type userSignInRequest struct {
 }
 
 type userSignInResponse struct {
-	Token string `json:"token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (h *UserController) SignIn(ctx echo.Context) error {
@@ -77,7 +80,7 @@ func (h *UserController) SignIn(ctx echo.Context) error {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	token, err := h.usecase.SignIn(ctx.Request().Context(), usecase.UserSignInRequest{
+	tokens, err := h.usecase.SignIn(ctx.Request().Context(), usecase.UserSignInRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -90,6 +93,7 @@ func (h *UserController) SignIn(ctx echo.Context) error {
 	}
 
 	return SuccessResponse(ctx, http.StatusOK, userSignInResponse{
-		Token: token,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 	})
 }

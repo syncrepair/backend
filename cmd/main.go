@@ -44,10 +44,10 @@ func main() {
 	postgresSB := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 	passwordHasher := auth.NewPasswordHasher(cfg.Auth.PasswordSalt)
-	jwtManager := auth.NewJWTManager(cfg.Auth.JWT.Key, cfg.Auth.JWT.TTL)
+	tokensManager := auth.NewTokensManager(cfg.Auth.JWT.Key, cfg.Auth.JWT.TTL)
 
 	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
-	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, jwtManager)
+	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, tokensManager)
 	userController := controller.NewUserController(userUsecase)
 	companyRepository := repository.NewCompanyRepository(postgresDB, postgresSB, "companies")
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
