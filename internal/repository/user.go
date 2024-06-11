@@ -12,6 +12,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user domain.User) error
 	FindByCredentials(ctx context.Context, email string, password string) (domain.User, error)
+	Confirm(ctx context.Context, id string) error
 }
 
 type userRepository struct {
@@ -67,4 +68,22 @@ func (r *userRepository) FindByCredentials(ctx context.Context, email string, pa
 	}
 
 	return user, nil
+}
+
+func (r *userRepository) Confirm(ctx context.Context, id string) error {
+	sql, args := r.sb.Update(r.tableName).
+		Set("is_confirmed", true).
+		Where(squirrel.Eq{"id": id}).
+		MustSql() // TODO: change to ToSQL to handle errors
+
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return err
+	}
+
+	if rows.CommandTag().RowsAffected() == 0 {
+		return domain.ErrUserConfirmation
+	}
+
+	return nil
 }

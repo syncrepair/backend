@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrUserNotFound      = errors.New("користувача не знайдено")
 	ErrUserAlreadyExists = errors.New("користувач вже існує")
+	ErrUserConfirmation  = errors.New("помилка підтвердження користувача")
 )
 
 type User struct {

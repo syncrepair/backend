@@ -14,6 +14,7 @@ type UserUsecase interface {
 	SignUp(ctx context.Context, req UserSignUpRequest) (UserTokens, error)
 	SignIn(ctx context.Context, req UserSignInRequest) (UserTokens, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (UserTokens, error)
+	Confirm(ctx context.Context, id string) error
 }
 
 type userUsecase struct {
@@ -104,4 +105,12 @@ func (uc *userUsecase) createSession(ctx context.Context, userID string) (UserTo
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+func (uc *userUsecase) Confirm(ctx context.Context, id string) error {
+	if err := uc.repository.Confirm(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
 }

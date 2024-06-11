@@ -23,6 +23,7 @@ func (h *UserController) Routes(router *echo.Group) {
 	{
 		users.POST("/sign-up", h.SignUp)
 		users.POST("/sign-in", h.SignIn)
+		users.POST("/confirm", h.Confirm)
 		users.POST("/refresh-tokens", h.RefreshTokens)
 	}
 }
@@ -123,4 +124,25 @@ func (h *UserController) RefreshTokens(ctx echo.Context) error {
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	})
+}
+
+type userConfirmRequest struct {
+	ID string `json:"id"`
+}
+
+func (h *UserController) Confirm(ctx echo.Context) error {
+	var req userConfirmRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	if err := h.usecase.Confirm(ctx.Request().Context(), req.ID); err != nil {
+		if errors.Is(err, domain.ErrUserConfirmation) {
+			return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrUserConfirmation)
+		}
+
+		return ErrorResponse(ctx, http.StatusInternalServerError, err)
+	}
+
+	return SuccessResponse(ctx, http.StatusOK)
 }
