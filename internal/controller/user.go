@@ -56,6 +56,9 @@ func (h *UserController) SignUp(ctx echo.Context) error {
 		if errors.Is(err, domain.ErrUserAlreadyExists) {
 			return ErrorResponse(ctx, http.StatusConflict, domain.ErrUserAlreadyExists)
 		}
+		if errors.Is(err, domain.ErrCompanyNotFound) {
+			return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrCompanyNotFound)
+		}
 
 		return ErrorResponse(ctx, http.StatusInternalServerError, err)
 	}

@@ -40,6 +40,9 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 		if errors.Is(util.ParsePgErr(err), util.PgErrAlreadyExists) {
 			return domain.ErrUserAlreadyExists
 		}
+		if errors.Is(util.ParsePgErr(err), util.PgErrForeignKey) {
+			return domain.ErrCompanyNotFound
+		}
 
 		return err
 	}
