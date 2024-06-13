@@ -30,12 +30,15 @@ func NewUserRepository(db *pgxpool.Pool, sb squirrel.StatementBuilderType, table
 }
 
 func (r *userRepository) Create(ctx context.Context, user domain.User) error {
-	sql, args := r.sb.Insert(r.tableName).
+	sql, args, err := r.sb.Insert(r.tableName).
 		Columns("id", "name", "email", "password", "company_id", "is_confirmed").
 		Values(user.ID, user.Name, user.Email, user.Password, user.CompanyID, user.IsConfirmed).
-		MustSql()
+		ToSql()
+	if err != nil {
+		return err
+	}
 
-	_, err := r.db.Exec(ctx, sql, args...)
+	_, err = r.db.Exec(ctx, sql, args...)
 	if err != nil {
 		if errors.Is(util.ParsePgErr(err), util.PgErrAlreadyExists) {
 			return domain.ErrUserAlreadyExists
@@ -51,18 +54,20 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 }
 
 func (r *userRepository) FindByCredentials(ctx context.Context, email string, password string) (domain.User, error) {
-	sql, args := r.sb.Select("id", "name", "email", "password", "company_id", "is_confirmed").
+	sql, args, err := r.sb.Select("id", "name", "email", "password", "company_id", "is_confirmed").
 		From(r.tableName).
 		Where(squirrel.And{
 			squirrel.Eq{"email": email},
 			squirrel.Eq{"password": password},
 		}).
-		MustSql()
+		ToSql()
+	if err != nil {
+		return domain.User{}, err
+	}
 
 	var user domain.User
 
-	err := r.db.QueryRow(ctx, sql, args...).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CompanyID, &user.IsConfirmed)
-	if err != nil {
+	if err = r.db.QueryRow(ctx, sql, args...).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CompanyID, &user.IsConfirmed); err != nil {
 		if errors.Is(util.ParsePgErr(err), util.PgErrNotFound) {
 			return domain.User{}, domain.ErrUserNotFound
 		}
@@ -74,10 +79,13 @@ func (r *userRepository) FindByCredentials(ctx context.Context, email string, pa
 }
 
 func (r *userRepository) Confirm(ctx context.Context, id string) error {
-	sql, args := r.sb.Update(r.tableName).
+	sql, args, err := r.sb.Update(r.tableName).
 		Set("is_confirmed", true).
 		Where(squirrel.Eq{"id": id}).
-		MustSql() // TODO: change to ToSQL to handle errors
+		ToSql()
+	if err != nil {
+		return err
+	}
 
 	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
