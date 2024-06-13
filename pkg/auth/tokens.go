@@ -8,7 +8,7 @@ import (
 )
 
 type TokensManager interface {
-	NewAccessToken(id string) (string, error)
+	NewAccessToken(userID, companyID string) (string, error)
 	NewRefreshToken() (string, error)
 }
 
@@ -24,11 +24,12 @@ func NewTokensManager(accessTokenKey string, accessTokenTTL time.Duration) Token
 	}
 }
 
-func (m *tokensManager) NewAccessToken(id string) (string, error) {
+func (m *tokensManager) NewAccessToken(userID, companyID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"sub": id,
-			"exp": time.Now().Add(m.accessTokenTTL).Unix(),
+			"sub":        userID,
+			"company_id": companyID,
+			"exp":        time.Now().Add(m.accessTokenTTL).Unix(),
 		})
 
 	tokenString, err := token.SignedString([]byte(m.accessTokenKey))
