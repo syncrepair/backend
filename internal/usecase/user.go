@@ -56,7 +56,7 @@ func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (UserT
 		return UserTokens{}, err
 	}
 
-	return uc.createSession(ctx, id)
+	return uc.createSession(ctx, id, req.CompanyID)
 }
 
 type UserSignInRequest struct {
@@ -70,17 +70,43 @@ func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (UserT
 		return UserTokens{}, err
 	}
 
-	return uc.createSession(ctx, user.ID)
+	return uc.createSession(ctx, user.ID, user.CompanyID)
+}
+
+func (uc *userUsecase) Confirm(ctx context.Context, id string) error {
+	return uc.repository.Confirm(ctx, id)
 }
 
 func (uc *userUsecase) RefreshTokens(ctx context.Context, refreshToken string) (UserTokens, error) {
+	var expiresAt time.Time
 	var userID string
+	var companyID string
 
-	if err := uc.redisDB.Get(ctx, refreshToken).Scan(&userID); err != nil {
+	if err := uc.redisDB.HGet(ctx, refreshToken, "expires_at").Scan(&expiresAt); err != nil {
+		return UserTokens{}, err
+	}
+	if time.Now().After(expiresAt) {
+		uc.redisDB.HDel(ctx, refreshToken, "user_id", "company_id", "expires_at")
+		return UserTokens{}, domain.ErrUnauthorized
+	}
+
+	if err := uc.redisDB.HGet(ctx, refreshToken, "user_id").Scan(&userID); err != nil {
 		return UserTokens{}, err
 	}
 
-	return uc.createSession(ctx, userID)
+	if err := uc.redisDB.HGet(ctx, refreshToken, "company_id").Scan(&companyID); err != nil {
+		return UserTokens{}, err
+	}
+
+	accessToken, err := uc.tokensManager.NewAccessToken(userID, companyID)
+	if err != nil {
+		return UserTokens{}, err
+	}
+
+	return UserTokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 type UserTokens struct {
@@ -88,8 +114,8 @@ type UserTokens struct {
 	RefreshToken string
 }
 
-func (uc *userUsecase) createSession(ctx context.Context, userID string) (UserTokens, error) {
-	accessToken, err := uc.tokensManager.NewAccessToken(userID)
+func (uc *userUsecase) createSession(ctx context.Context, userID, companyID string) (UserTokens, error) {
+	accessToken, err := uc.tokensManager.NewAccessToken(userID, companyID)
 	if err != nil {
 		return UserTokens{}, err
 	}
@@ -99,18 +125,10 @@ func (uc *userUsecase) createSession(ctx context.Context, userID string) (UserTo
 		return UserTokens{}, err
 	}
 
-	uc.redisDB.Set(ctx, refreshToken, userID, uc.refreshTokenTTL)
+	uc.redisDB.HSet(ctx, refreshToken, "user_id", userID, "company_id", companyID, "expires_at", time.Now().Add(uc.refreshTokenTTL))
 
 	return UserTokens{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
-}
-
-func (uc *userUsecase) Confirm(ctx context.Context, id string) error {
-	if err := uc.repository.Confirm(ctx, id); err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -120,6 +120,10 @@ func (h *UserController) RefreshTokens(ctx echo.Context) error {
 
 	tokens, err := h.usecase.RefreshTokens(ctx.Request().Context(), req.RefreshToken)
 	if err != nil {
+		if errors.Is(err, domain.ErrUnauthorized) {
+			return ErrorResponse(ctx, http.StatusUnauthorized, domain.ErrUnauthorized)
+		}
+
 		return ErrorResponse(ctx, http.StatusInternalServerError, err)
 	}
 
