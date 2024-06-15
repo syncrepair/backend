@@ -1,4 +1,4 @@
-package controller
+package http
 
 import (
 	"errors"
@@ -8,23 +8,23 @@ import (
 	"net/http"
 )
 
-type UserController struct {
+type UserHandler struct {
 	usecase usecase.UserUsecase
 }
 
-func NewUserController(usecase usecase.UserUsecase) *UserController {
-	return &UserController{
+func NewUserHandler(usecase usecase.UserUsecase) *UserHandler {
+	return &UserHandler{
 		usecase: usecase,
 	}
 }
 
-func (h *UserController) Routes(router *echo.Group) {
+func (h *UserHandler) initRoutes(router *echo.Group) {
 	users := router.Group("/users")
 	{
-		users.POST("/sign-up", h.SignUp)
-		users.POST("/sign-in", h.SignIn)
-		users.POST("/confirm", h.Confirm)
-		users.POST("/refresh-tokens", h.RefreshTokens)
+		users.POST("/sign-up", h.signUp)
+		users.POST("/sign-in", h.signIn)
+		users.POST("/confirm", h.confirm)
+		users.POST("/refresh-tokens", h.refreshTokens)
 	}
 }
 
@@ -40,7 +40,7 @@ type userSignUpResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (h *UserController) SignUp(ctx echo.Context) error {
+func (h *UserHandler) signUp(ctx echo.Context) error {
 	var req userSignUpRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
@@ -79,7 +79,7 @@ type userSignInResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (h *UserController) SignIn(ctx echo.Context) error {
+func (h *UserHandler) signIn(ctx echo.Context) error {
 	var req userSignInRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
@@ -112,7 +112,7 @@ type userRefreshTokensResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (h *UserController) RefreshTokens(ctx echo.Context) error {
+func (h *UserHandler) refreshTokens(ctx echo.Context) error {
 	var req userRefreshTokensRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
@@ -137,7 +137,7 @@ type userConfirmRequest struct {
 	ID string `json:"id"`
 }
 
-func (h *UserController) Confirm(ctx echo.Context) error {
+func (h *UserHandler) confirm(ctx echo.Context) error {
 	var req userConfirmRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)

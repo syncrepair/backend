@@ -1,4 +1,4 @@
-package controller
+package http
 
 import (
 	"fmt"
@@ -6,13 +6,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 )
-
-func NewRouter(logger zerolog.Logger) *echo.Echo {
-	r := echo.New()
-	r.Use(requestLoggingMiddleware(logger))
-
-	return r
-}
 
 func requestLoggingMiddleware(log zerolog.Logger) echo.MiddlewareFunc {
 	return middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{

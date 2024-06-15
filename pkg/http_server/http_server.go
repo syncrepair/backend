@@ -1,4 +1,4 @@
-package http
+package http_server
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type ServerConfig struct {
+type Config struct {
 	Addr         string
 	Handler      http.Handler
 	ReadTimeout  time.Duration
@@ -26,7 +26,7 @@ type Server struct {
 
 var log zerolog.Logger
 
-func NewServer(cfg ServerConfig) *Server {
+func New(cfg Config) *Server {
 	srv := &http.Server{
 		Addr:         cfg.Addr,
 		Handler:      cfg.Handler,
@@ -49,7 +49,7 @@ func (srv *Server) StartWithGracefulShutdown(ctx context.Context) {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal().
 				Err(err).
-				Msg("error starting http http")
+				Msg("error starting http_server http_server")
 		}
 	}()
 
@@ -68,7 +68,7 @@ func (srv *Server) StartWithGracefulShutdown(ctx context.Context) {
 		if err := srv.Shutdown(ctxTimeout); err != nil {
 			log.Fatal().
 				Err(err).
-				Msg("error shutting down http server")
+				Msg("error shutting down http_server server")
 		}
 	}()
 }

@@ -4,11 +4,11 @@ import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/syncrepair/backend/internal/config"
-	"github.com/syncrepair/backend/internal/controller"
+	"github.com/syncrepair/backend/internal/delivery/http"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/auth"
-	"github.com/syncrepair/backend/pkg/http"
+	"github.com/syncrepair/backend/pkg/http_server"
 	"github.com/syncrepair/backend/pkg/logger"
 	"github.com/syncrepair/backend/pkg/postgres"
 	"github.com/syncrepair/backend/pkg/redis"
@@ -52,21 +52,18 @@ func main() {
 
 	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
 	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, tokensManager, redisDB, cfg.Auth.Tokens.RefreshTokenTTL)
-	userController := controller.NewUserController(userUsecase)
+	userHandler := http.NewUserHandler(userUsecase)
 	companyRepository := repository.NewCompanyRepository(postgresDB, postgresSB, "companies")
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
-	companyController := controller.NewCompanyController(companyUsecase)
+	companyHandler := http.NewCompanyHandler(companyUsecase)
 
-	router := controller.NewRouter(log)
+	handler := http.NewHandler(log, http.Handlers{
+		User:    userHandler,
+		Company: companyHandler,
+	})
 
-	publicRouter := router.Group("/api")
-	{
-		userController.Routes(publicRouter)
-		companyController.Routes(publicRouter)
-	}
-
-	httpServer := http.NewServer(http.ServerConfig{
-		Handler:      router,
+	httpServer := http_server.New(http_server.Config{
+		Handler:      handler,
 		Addr:         cfg.HTTP.Address,
 		ReadTimeout:  cfg.HTTP.ReadTimeout,
 		WriteTimeout: cfg.HTTP.WriteTimeout,
