@@ -87,13 +87,9 @@ func (r *userRepository) Confirm(ctx context.Context, id string) error {
 		return err
 	}
 
-	rows, err := r.db.Query(ctx, sql, args...)
+	_, err = r.db.Query(ctx, sql, args...)
 	if err != nil {
 		return err
-	}
-
-	if rows.CommandTag().RowsAffected() == 0 {
-		return domain.ErrUserConfirmation
 	}
 
 	return nil
