@@ -8,7 +8,8 @@ import (
 )
 
 type TokensManager interface {
-	NewAccessToken(userID, companyID string) (string, error)
+	NewAccessToken(claims Claims) (string, error)
+	GetAccessTokenClaims(accessToken string) (Claims, error)
 	NewRefreshToken() (string, error)
 }
 
@@ -24,11 +25,16 @@ func NewTokensManager(accessTokenKey string, accessTokenTTL time.Duration) Token
 	}
 }
 
-func (m *tokensManager) NewAccessToken(userID, companyID string) (string, error) {
+type Claims struct {
+	UserID    string
+	CompanyID string
+}
+
+func (m *tokensManager) NewAccessToken(claims Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"sub":        userID,
-			"company_id": companyID,
+			"sub":        claims.UserID,
+			"company_id": claims.CompanyID,
 			"exp":        time.Now().Add(m.accessTokenTTL).Unix(),
 		})
 
@@ -38,6 +44,29 @@ func (m *tokensManager) NewAccessToken(userID, companyID string) (string, error)
 	}
 
 	return tokenString, nil
+}
+
+func (m *tokensManager) GetAccessTokenClaims(accessToken string) (Claims, error) {
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (i interface{}, err error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(m.accessTokenKey), nil
+	})
+	if err != nil {
+		return Claims{}, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return Claims{}, fmt.Errorf("error getting claims from access token")
+	}
+
+	return Claims{
+		UserID:    claims["sub"].(string),
+		CompanyID: claims["company_id"].(string),
+	}, nil
 }
 
 func (m *tokensManager) NewRefreshToken() (string, error) {

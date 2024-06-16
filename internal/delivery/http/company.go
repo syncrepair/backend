@@ -7,20 +7,10 @@ import (
 	"net/http"
 )
 
-type CompanyHandler struct {
-	usecase usecase.CompanyUsecase
-}
-
-func NewCompanyHandler(usecase usecase.CompanyUsecase) *CompanyHandler {
-	return &CompanyHandler{
-		usecase: usecase,
-	}
-}
-
-func (h *CompanyHandler) initRoutes(router *echo.Group) {
+func (h *Handler) initCompanyRoutes(router *echo.Group) {
 	companies := router.Group("/companies")
 	{
-		companies.POST("", h.create)
+		companies.POST("", h.companyCreate)
 	}
 }
 
@@ -32,13 +22,13 @@ type companyCreateResponse struct {
 	ID string `json:"id"`
 }
 
-func (h *CompanyHandler) create(ctx echo.Context) error {
+func (h *Handler) companyCreate(ctx echo.Context) error {
 	var req companyCreateRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	id, err := h.usecase.Create(ctx.Request().Context(), usecase.CompanyCreateRequest{
+	id, err := h.usecases.CompanyUsecase.Create(ctx.Request().Context(), usecase.CompanyCreateRequest{
 		Name: req.Name,
 	})
 	if err != nil {

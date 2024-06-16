@@ -3,32 +3,50 @@ package http
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
+	"github.com/syncrepair/backend/internal/usecase"
+	"github.com/syncrepair/backend/pkg/auth"
 	"net/http"
 )
 
-type Handlers struct {
-	User    *UserHandler
-	Company *CompanyHandler
+type Handler struct {
+	usecases      Usecases
+	tokensManager auth.TokensManager
+	log           zerolog.Logger
 }
 
-func NewHandler(log zerolog.Logger, handlers Handlers) *echo.Echo {
-	h := echo.New()
+type Usecases struct {
+	UserUsecase    usecase.UserUsecase
+	CompanyUsecase usecase.CompanyUsecase
+	ServiceUsecase usecase.ServiceUsecase
+}
 
-	h.Use(requestLoggingMiddleware(log))
+func NewHandler(log zerolog.Logger, tokensManager auth.TokensManager, usecases Usecases) *Handler {
+	return &Handler{
+		usecases:      usecases,
+		tokensManager: tokensManager,
+		log:           log,
+	}
+}
 
-	h.GET("/ping", func(c echo.Context) error {
+func (h *Handler) Init() *echo.Echo {
+	r := echo.New()
+
+	r.Use(h.requestLoggingMiddleware())
+
+	r.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong")
 	})
 
-	initAPI(h, handlers)
+	h.initAPI(r)
 
-	return h
+	return r
 }
 
-func initAPI(h *echo.Echo, handlers Handlers) {
-	api := h.Group("/api")
+func (h *Handler) initAPI(router *echo.Echo) {
+	api := router.Group("/api")
 	{
-		handlers.User.initRoutes(api)
-		handlers.Company.initRoutes(api)
+		h.initUserRoutes(api)
+		h.initCompanyRoutes(api)
+		h.initServiceRoutes(api)
 	}
 }

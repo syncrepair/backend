@@ -98,7 +98,10 @@ func (uc *userUsecase) RefreshTokens(ctx context.Context, refreshToken string) (
 		return UserTokens{}, err
 	}
 
-	accessToken, err := uc.tokensManager.NewAccessToken(userID, companyID)
+	accessToken, err := uc.tokensManager.NewAccessToken(auth.Claims{
+		UserID:    userID,
+		CompanyID: companyID,
+	})
 	if err != nil {
 		return UserTokens{}, err
 	}
@@ -115,7 +118,10 @@ type UserTokens struct {
 }
 
 func (uc *userUsecase) createSession(ctx context.Context, userID, companyID string) (UserTokens, error) {
-	accessToken, err := uc.tokensManager.NewAccessToken(userID, companyID)
+	accessToken, err := uc.tokensManager.NewAccessToken(auth.Claims{
+		UserID:    userID,
+		CompanyID: companyID,
+	})
 	if err != nil {
 		return UserTokens{}, err
 	}

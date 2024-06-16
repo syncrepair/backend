@@ -52,18 +52,19 @@ func main() {
 
 	userRepository := repository.NewUserRepository(postgresDB, postgresSB, "users")
 	userUsecase := usecase.NewUserUsecase(userRepository, passwordHasher, tokensManager, redisDB, cfg.Auth.Tokens.RefreshTokenTTL)
-	userHandler := http.NewUserHandler(userUsecase)
 	companyRepository := repository.NewCompanyRepository(postgresDB, postgresSB, "companies")
 	companyUsecase := usecase.NewCompanyUsecase(companyRepository)
-	companyHandler := http.NewCompanyHandler(companyUsecase)
+	serviceRepository := repository.NewServiceRepository(postgresDB, postgresSB, "services")
+	serviceUsecase := usecase.NewServiceUsecase(serviceRepository)
 
-	handler := http.NewHandler(log, http.Handlers{
-		User:    userHandler,
-		Company: companyHandler,
+	handler := http.NewHandler(log, tokensManager, http.Usecases{
+		UserUsecase:    userUsecase,
+		CompanyUsecase: companyUsecase,
+		ServiceUsecase: serviceUsecase,
 	})
 
 	httpServer := http_server.New(http_server.Config{
-		Handler:      handler,
+		Handler:      handler.Init(),
 		Addr:         cfg.HTTP.Address,
 		ReadTimeout:  cfg.HTTP.ReadTimeout,
 		WriteTimeout: cfg.HTTP.WriteTimeout,
