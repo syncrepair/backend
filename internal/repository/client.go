@@ -11,6 +11,7 @@ import (
 
 type ClientRepository interface {
 	Create(ctx context.Context, client domain.Client) error
+	Update(ctx context.Context, client domain.Client) error
 	Delete(ctx context.Context, id string) error
 }
 
@@ -43,6 +44,26 @@ func (r *clientRepository) Create(ctx context.Context, client domain.Client) err
 			return domain.ErrCompanyNotFound
 		}
 
+		return err
+	}
+
+	return nil
+}
+
+func (r *clientRepository) Update(ctx context.Context, client domain.Client) error {
+	sql, args, err := r.sb.Update(r.tableName).
+		SetMap(map[string]interface{}{
+			"name":         client.Name,
+			"phone_number": client.PhoneNumber,
+		}).
+		Where(squirrel.Eq{"id": client.ID}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Exec(ctx, sql, args...)
+	if err != nil {
 		return err
 	}
 

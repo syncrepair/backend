@@ -12,6 +12,7 @@ func (h *Handler) initClientRoutes(router *echo.Group) {
 	services := router.Group("/clients", h.authMiddleware())
 	{
 		services.POST("", h.clientCreate)
+		services.PUT("", h.clientUpdate)
 		services.DELETE("", h.clientDelete)
 	}
 }
@@ -47,6 +48,29 @@ func (h *Handler) clientCreate(ctx echo.Context) error {
 	return SuccessResponse(ctx, http.StatusOK, clientCreateResponse{
 		ID: id,
 	})
+}
+
+type clientUpdateRequest struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+}
+
+func (h *Handler) clientUpdate(ctx echo.Context) error {
+	var req clientUpdateRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	if err := h.usecases.ClientUsecase.Update(ctx.Request().Context(), usecase.ClientUpdateRequest{
+		ID:          req.ID,
+		Name:        req.Name,
+		PhoneNumber: req.PhoneNumber,
+	}); err != nil {
+		return ErrorResponse(ctx, http.StatusInternalServerError, err)
+	}
+
+	return SuccessResponse(ctx, http.StatusOK)
 }
 
 type clientDeleteRequest struct {

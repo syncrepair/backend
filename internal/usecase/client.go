@@ -9,6 +9,7 @@ import (
 
 type ClientUsecase interface {
 	Create(ctx context.Context, req ClientCreateRequest) (string, error)
+	Update(ctx context.Context, req ClientUpdateRequest) error
 	Delete(ctx context.Context, id string) error
 }
 
@@ -41,6 +42,20 @@ func (uc *clientUsecase) Create(ctx context.Context, req ClientCreateRequest) (s
 	}
 
 	return id, nil
+}
+
+type ClientUpdateRequest struct {
+	ID          string
+	Name        string
+	PhoneNumber string
+}
+
+func (uc *clientUsecase) Update(ctx context.Context, req ClientUpdateRequest) error {
+	return uc.repository.Update(ctx, domain.Client{
+		ID:          req.ID,
+		Name:        req.Name,
+		PhoneNumber: req.PhoneNumber,
+	})
 }
 
 func (uc *clientUsecase) Delete(ctx context.Context, id string) error {
