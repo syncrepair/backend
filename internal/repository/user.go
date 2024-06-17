@@ -87,7 +87,7 @@ func (r *userRepository) Confirm(ctx context.Context, id string) error {
 		return err
 	}
 
-	_, err = r.db.Query(ctx, sql, args...)
+	_, err = r.db.Exec(ctx, sql, args...)
 	if err != nil {
 		return err
 	}

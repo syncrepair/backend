@@ -18,6 +18,7 @@ type Usecases struct {
 	UserUsecase    usecase.UserUsecase
 	CompanyUsecase usecase.CompanyUsecase
 	ServiceUsecase usecase.ServiceUsecase
+	ClientUsecase  usecase.ClientUsecase
 }
 
 func NewHandler(log zerolog.Logger, tokensManager auth.TokensManager, usecases Usecases) *Handler {
@@ -48,5 +49,6 @@ func (h *Handler) initAPI(router *echo.Echo) {
 		h.initUserRoutes(api)
 		h.initCompanyRoutes(api)
 		h.initServiceRoutes(api)
+		h.initClientRoutes(api)
 	}
 }

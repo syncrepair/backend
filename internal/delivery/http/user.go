@@ -134,10 +134,6 @@ func (h *Handler) userConfirm(ctx echo.Context) error {
 	}
 
 	if err := h.usecases.UserUsecase.Confirm(ctx.Request().Context(), req.ID); err != nil {
-		if errors.Is(err, domain.ErrUserConfirmation) {
-			return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrUserConfirmation)
-		}
-
 		return ErrorResponse(ctx, http.StatusInternalServerError, err)
 	}
 
