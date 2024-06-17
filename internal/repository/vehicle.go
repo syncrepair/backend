@@ -9,29 +9,29 @@ import (
 	"github.com/syncrepair/backend/internal/util"
 )
 
-type ClientRepository interface {
-	Create(ctx context.Context, client domain.Client) error
+type VehicleRepository interface {
+	Create(ctx context.Context, vehicle domain.Vehicle) error
 	Delete(ctx context.Context, id string) error
 }
 
-type clientRepository struct {
+type vehicleRepository struct {
 	db        *pgxpool.Pool
 	sb        squirrel.StatementBuilderType
 	tableName string
 }
 
-func NewClientRepository(db *pgxpool.Pool, sb squirrel.StatementBuilderType, tableName string) ClientRepository {
-	return &clientRepository{
+func NewVehicleRepository(db *pgxpool.Pool, sb squirrel.StatementBuilderType, tableName string) VehicleRepository {
+	return &vehicleRepository{
 		db:        db,
 		sb:        sb,
 		tableName: tableName,
 	}
 }
 
-func (r *clientRepository) Create(ctx context.Context, client domain.Client) error {
+func (r *vehicleRepository) Create(ctx context.Context, vehicle domain.Vehicle) error {
 	sql, args, err := r.sb.Insert(r.tableName).
-		Columns("id", "name", "phone_number", "company_id").
-		Values(client.ID, client.Name, client.PhoneNumber, client.CompanyID).
+		Columns("id", "make", "model", "year", "vin", "plate_number", "client_id").
+		Values(vehicle.ID, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.VIN, vehicle.PlateNumber, vehicle.ClientID).
 		ToSql()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (r *clientRepository) Create(ctx context.Context, client domain.Client) err
 	_, err = r.db.Exec(ctx, sql, args...)
 	if err != nil {
 		if errors.Is(util.ParsePgErr(err), util.PgErrForeignKey) {
-			return domain.ErrCompanyNotFound
+			return domain.ErrClientNotFound
 		}
 
 		return err
@@ -49,7 +49,7 @@ func (r *clientRepository) Create(ctx context.Context, client domain.Client) err
 	return nil
 }
 
-func (r *clientRepository) Delete(ctx context.Context, id string) error {
+func (r *vehicleRepository) Delete(ctx context.Context, id string) error {
 	sql, args, err := r.sb.Delete(r.tableName).
 		Where(squirrel.Eq{"id": id}).
 		ToSql()

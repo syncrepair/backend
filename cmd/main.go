@@ -58,12 +58,15 @@ func main() {
 	serviceUsecase := usecase.NewServiceUsecase(serviceRepository)
 	clientRepository := repository.NewClientRepository(postgresDB, postgresSB, "clients")
 	clientUsecase := usecase.NewClientUsecase(clientRepository)
+	vehicleRepository := repository.NewVehicleRepository(postgresDB, postgresSB, "vehicles")
+	vehicleUsecase := usecase.NewVehicleUsecase(vehicleRepository)
 
 	handler := http.NewHandler(log, tokensManager, http.Usecases{
 		UserUsecase:    userUsecase,
 		CompanyUsecase: companyUsecase,
 		ServiceUsecase: serviceUsecase,
 		ClientUsecase:  clientUsecase,
+		VehicleUsecase: vehicleUsecase,
 	})
 
 	httpServer := http_server.New(http_server.Config{
