@@ -9,6 +9,7 @@ import (
 
 type CompanyRepository interface {
 	Create(ctx context.Context, company domain.Company) error
+	Delete(ctx context.Context, id string) error
 }
 
 type companyRepository struct {
@@ -29,6 +30,22 @@ func (r *companyRepository) Create(ctx context.Context, company domain.Company) 
 	sql, args, err := r.sb.Insert(r.tableName).
 		Columns("id", "name").
 		Values(company.ID, company.Name).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Exec(ctx, sql, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *companyRepository) Delete(ctx context.Context, id string) error {
+	sql, args, err := r.sb.Delete(r.tableName).
+		Where(squirrel.Eq{"id": id}).
 		ToSql()
 	if err != nil {
 		return err

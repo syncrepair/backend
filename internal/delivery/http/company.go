@@ -11,6 +11,7 @@ func (h *Handler) initCompanyRoutes(router *echo.Group) {
 	companies := router.Group("/companies")
 	{
 		companies.POST("", h.companyCreate)
+		companies.DELETE("", h.companyDelete, h.authMiddleware())
 	}
 }
 
@@ -38,4 +39,12 @@ func (h *Handler) companyCreate(ctx echo.Context) error {
 	return SuccessResponse(ctx, http.StatusOK, companyCreateResponse{
 		ID: id,
 	})
+}
+
+func (h *Handler) companyDelete(ctx echo.Context) error {
+	if err := h.usecases.CompanyUsecase.Delete(ctx.Request().Context(), getCompanyIDFromCtx(ctx)); err != nil {
+		return ErrorResponse(ctx, http.StatusInternalServerError, err)
+	}
+
+	return SuccessResponse(ctx, http.StatusOK)
 }
