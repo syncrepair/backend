@@ -11,6 +11,7 @@ import (
 
 type ServiceRepository interface {
 	Create(ctx context.Context, service domain.Service) error
+	Delete(ctx context.Context, id string) error
 }
 
 type serviceRepository struct {
@@ -42,6 +43,22 @@ func (r *serviceRepository) Create(ctx context.Context, service domain.Service) 
 			return domain.ErrCompanyNotFound
 		}
 
+		return err
+	}
+
+	return nil
+}
+
+func (r *serviceRepository) Delete(ctx context.Context, id string) error {
+	sql, args, err := r.sb.Delete(r.tableName).
+		Where(squirrel.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Exec(ctx, sql, args...)
+	if err != nil {
 		return err
 	}
 

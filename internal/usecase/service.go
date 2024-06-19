@@ -9,6 +9,7 @@ import (
 
 type ServiceUsecase interface {
 	Create(ctx context.Context, req ServiceCreateRequest) (string, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type serviceUsecase struct {
@@ -42,4 +43,8 @@ func (uc *serviceUsecase) Create(ctx context.Context, req ServiceCreateRequest) 
 	}
 
 	return id, nil
+}
+
+func (uc *serviceUsecase) Delete(ctx context.Context, id string) error {
+	return uc.repository.Delete(ctx, id)
 }

@@ -12,6 +12,7 @@ func (h *Handler) initServiceRoutes(router *echo.Group) {
 	services := router.Group("/services", h.authMiddleware())
 	{
 		services.POST("", h.serviceCreate)
+		services.DELETE("", h.serviceDelete)
 	}
 }
 
@@ -48,4 +49,21 @@ func (h *Handler) serviceCreate(ctx echo.Context) error {
 	return SuccessResponse(ctx, http.StatusOK, serviceCreateResponse{
 		ID: id,
 	})
+}
+
+type serviceDeleteRequest struct {
+	ID string `json:"id"`
+}
+
+func (h *Handler) serviceDelete(ctx echo.Context) error {
+	var req serviceDeleteRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ErrorResponse(ctx, http.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	if err := h.usecases.ServiceUsecase.Delete(ctx.Request().Context(), req.ID); err != nil {
+		return ErrorResponse(ctx, http.StatusInternalServerError, err)
+	}
+
+	return SuccessResponse(ctx, http.StatusOK)
 }
