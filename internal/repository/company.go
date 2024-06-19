@@ -28,8 +28,8 @@ func NewCompanyRepository(db *pgxpool.Pool, sb squirrel.StatementBuilderType, ta
 
 func (r *companyRepository) Create(ctx context.Context, company domain.Company) error {
 	sql, args, err := r.sb.Insert(r.tableName).
-		Columns("id", "name").
-		Values(company.ID, company.Name).
+		Columns("id", "name", "open_time", "close_time").
+		Values(company.ID, company.Name, company.OpenTime, company.CloseTime).
 		ToSql()
 	if err != nil {
 		return err

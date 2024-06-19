@@ -5,6 +5,7 @@ import (
 	"github.com/syncrepair/backend/internal/domain"
 	"github.com/syncrepair/backend/internal/usecase"
 	"net/http"
+	"time"
 )
 
 func (h *Handler) initCompanyRoutes(router *echo.Group) {
@@ -16,7 +17,9 @@ func (h *Handler) initCompanyRoutes(router *echo.Group) {
 }
 
 type companyCreateRequest struct {
-	Name string `json:"name"`
+	Name      string    `json:"name"`
+	OpenTime  time.Time `json:"open_time"`
+	CloseTime time.Time `json:"close_time"`
 }
 
 type companyCreateResponse struct {
@@ -30,7 +33,9 @@ func (h *Handler) companyCreate(ctx echo.Context) error {
 	}
 
 	id, err := h.usecases.CompanyUsecase.Create(ctx.Request().Context(), usecase.CompanyCreateRequest{
-		Name: req.Name,
+		Name:      req.Name,
+		OpenTime:  req.OpenTime,
+		CloseTime: req.CloseTime,
 	})
 	if err != nil {
 		return ErrorResponse(ctx, http.StatusInternalServerError, err)

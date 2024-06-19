@@ -5,6 +5,7 @@ import (
 	"github.com/syncrepair/backend/internal/domain"
 	"github.com/syncrepair/backend/internal/repository"
 	"github.com/syncrepair/backend/internal/util"
+	"time"
 )
 
 type CompanyUsecase interface {
@@ -23,15 +24,19 @@ func NewCompanyUsecase(repository repository.CompanyRepository) CompanyUsecase {
 }
 
 type CompanyCreateRequest struct {
-	Name string
+	Name      string
+	OpenTime  time.Time
+	CloseTime time.Time
 }
 
 func (uc *companyUsecase) Create(ctx context.Context, req CompanyCreateRequest) (string, error) {
 	id := util.GenerateID()
 
 	if err := uc.repository.Create(ctx, domain.Company{
-		ID:   id,
-		Name: req.Name,
+		ID:        id,
+		Name:      req.Name,
+		OpenTime:  req.OpenTime,
+		CloseTime: req.CloseTime,
 	}); err != nil {
 		return "", err
 	}
