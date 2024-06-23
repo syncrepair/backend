@@ -18,23 +18,17 @@ type Config struct {
 	} `yaml:"app" env-required:"true"`
 
 	HTTP struct {
-		Address      string        `yaml:"address" env:"HTTP_ADDRESS" env-required:"true"`
-		ReadTimeout  time.Duration `yaml:"read_timeout" env:"HTTP_READ_TIMEOUT" env-required:"true"`
-		WriteTimeout time.Duration `yaml:"write_timeout" env:"HTTP_WRITE_TIMEOUT" env-required:"true"`
-		IdleTimeout  time.Duration `yaml:"idle_timeout" env:"HTTP_IDLE_TIMEOUT" env-required:"true"`
+		Address         string        `yaml:"address" env:"HTTP_ADDRESS" env-required:"true"`
+		ReadTimeout     time.Duration `yaml:"read_timeout" env:"HTTP_READ_TIMEOUT" env-required:"true"`
+		WriteTimeout    time.Duration `yaml:"write_timeout" env:"HTTP_WRITE_TIMEOUT" env-required:"true"`
+		IdleTimeout     time.Duration `yaml:"idle_timeout" env:"HTTP_IDLE_TIMEOUT" env-required:"true"`
+		ShutdownTimeout time.Duration `yaml:"shutdown_timeout" env:"HTTP_SHUTDOWN_TIMEOUT" env-required:"true"`
 	} `yaml:"http" env-required:"true"`
 
-	Postgres struct {
-		Username string `yaml:"username" env:"POSTGRES_USERNAME" env-required:"true"`
-		Password string `yaml:"password" env:"POSTGRES_PASSWORD" env-required:"true"`
-		Host     string `yaml:"host" env:"POSTGRES_HOST" env-required:"true"`
-		Port     int    `yaml:"port" env:"POSTGRES_PORT" env-required:"true"`
-		Database string `yaml:"database" env:"POSTGRES_DATABASE" env-required:"true"`
-	} `yaml:"postgres" env-required:"true"`
-
-	Redis struct {
-		URL string `yaml:"url" env:"REDIS_URL" env-required:"true"`
-	} `yaml:"redis" env-required:"true"`
+	Mongo struct {
+		Name string `yaml:"name" env:"MONGO_NAME" env-required:"true"`
+		URI  string `yaml:"uri" env:"MONGO_URI" env-required:"true"`
+	} `yaml:"mongo" env-required:"true"`
 
 	Auth struct {
 		Tokens struct {
@@ -49,12 +43,21 @@ type Config struct {
 	} `yaml:"auth" env-required:"true"`
 }
 
-func Load() *Config {
+func Load() (*Config, error) {
 	var cfg Config
 
 	if err := cleanenv.ReadConfig("config.yml", &cfg); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
+func MustLoad() *Config {
+	cfg, err := Load()
+	if err != nil {
 		panic("error reading config file: " + err.Error())
 	}
 
-	return &cfg
+	return cfg
 }

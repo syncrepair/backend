@@ -2,40 +2,32 @@ package repository
 
 import (
 	"context"
-	"github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/syncrepair/backend/internal/domain"
+	"github.com/syncrepair/backend/pkg/database/mongodb"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CompanyRepository interface {
 	Create(ctx context.Context, company domain.Company) error
-	Delete(ctx context.Context, id string) error
+	GetByID(ctx context.Context, id primitive.ObjectID) (domain.Company, error)
+	Update(ctx context.Context, company domain.Company) error
+	Delete(ctx context.Context, id primitive.ObjectID) error
 }
 
 type companyRepository struct {
-	db        *pgxpool.Pool
-	sb        squirrel.StatementBuilderType
-	tableName string
+	db *mongo.Collection
 }
 
-func NewCompanyRepository(db *pgxpool.Pool, sb squirrel.StatementBuilderType, tableName string) CompanyRepository {
+func NewCompanyRepository(db *mongo.Database) CompanyRepository {
 	return &companyRepository{
-		db:        db,
-		sb:        sb,
-		tableName: tableName,
+		db: db.Collection(companiesCollectionName),
 	}
 }
 
 func (r *companyRepository) Create(ctx context.Context, company domain.Company) error {
-	sql, args, err := r.sb.Insert(r.tableName).
-		Columns("id", "name", "open_time", "close_time").
-		Values(company.ID, company.Name, company.OpenTime, company.CloseTime).
-		ToSql()
-	if err != nil {
-		return err
-	}
-
-	_, err = r.db.Exec(ctx, sql, args...)
+	_, err := r.db.InsertOne(ctx, company)
 	if err != nil {
 		return err
 	}
@@ -43,18 +35,30 @@ func (r *companyRepository) Create(ctx context.Context, company domain.Company) 
 	return nil
 }
 
-func (r *companyRepository) Delete(ctx context.Context, id string) error {
-	sql, args, err := r.sb.Delete(r.tableName).
-		Where(squirrel.Eq{"id": id}).
-		ToSql()
-	if err != nil {
-		return err
+func (r *companyRepository) GetByID(ctx context.Context, id primitive.ObjectID) (domain.Company, error) {
+	var company domain.Company
+	if err := r.db.FindOne(ctx, bson.M{"_id": id}).Decode(&company); err != nil {
+		if mongodb.IsNotFound(err) {
+			return domain.Company{}, domain.ErrCompanyNotFound
+		}
+
+		return domain.Company{}, err
 	}
 
-	_, err = r.db.Exec(ctx, sql, args...)
+	return company, nil
+}
+
+func (r *companyRepository) Update(ctx context.Context, company domain.Company) error {
+	_, err := r.db.UpdateOne(ctx, bson.M{"_id": company.ID}, bson.M{"$set": company})
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (r *companyRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
+	_, err := r.db.DeleteOne(ctx, bson.M{"_id": id})
+
+	return err
 }

@@ -4,68 +4,64 @@ import (
 	"context"
 	"github.com/syncrepair/backend/internal/domain"
 	"github.com/syncrepair/backend/internal/repository"
-	"github.com/syncrepair/backend/internal/util"
 	"github.com/syncrepair/backend/pkg/auth"
-	"github.com/syncrepair/backend/pkg/redis"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
-type UserUsecase interface {
-	SignUp(ctx context.Context, req UserSignUpRequest) (UserTokens, error)
-	SignIn(ctx context.Context, req UserSignInRequest) (UserTokens, error)
-	RefreshTokens(ctx context.Context, refreshToken string) (UserTokens, error)
-	Confirm(ctx context.Context, id string) error
-}
-
-type userUsecase struct {
+type UserUsecase struct {
 	repository      repository.UserRepository
 	passwordHasher  auth.PasswordHasher
 	tokensManager   auth.TokensManager
-	redisDB         *redis.Redis
 	refreshTokenTTL time.Duration
 }
 
-func NewUserUsecase(repository repository.UserRepository, passwordHasher auth.PasswordHasher, tokensManager auth.TokensManager, redisDB *redis.Redis, refreshTokenTTL time.Duration) UserUsecase {
-	return &userUsecase{
+func NewUserUsecase(repository repository.UserRepository, passwordHasher auth.PasswordHasher, tokensManager auth.TokensManager, refreshTokenTTL time.Duration) *UserUsecase {
+	return &UserUsecase{
 		repository:      repository,
 		passwordHasher:  passwordHasher,
 		tokensManager:   tokensManager,
-		redisDB:         redisDB,
 		refreshTokenTTL: refreshTokenTTL,
 	}
 }
 
-type UserSignUpRequest struct {
+type UserSignUpInput struct {
 	Name      string
 	Email     string
 	Password  string
 	CompanyID string
 }
 
-func (uc *userUsecase) SignUp(ctx context.Context, req UserSignUpRequest) (UserTokens, error) {
-	id := util.GenerateID()
+func (uc *UserUsecase) SignUp(ctx context.Context, input UserSignUpInput) (UserTokens, error) {
+	id := primitive.NewObjectID()
+
+	companyID, err := primitive.ObjectIDFromHex(input.CompanyID)
+	if err != nil {
+		return UserTokens{}, err
+	}
 
 	if err := uc.repository.Create(ctx, domain.User{
 		ID:          id,
-		Name:        req.Name,
-		Email:       req.Email,
-		Password:    uc.passwordHasher.Hash(req.Password),
-		CompanyID:   req.CompanyID,
+		Name:        input.Name,
+		Email:       input.Email,
+		Password:    uc.passwordHasher.Hash(input.Password),
 		IsConfirmed: false,
+		Session:     domain.UserSession{},
+		CompanyID:   companyID,
 	}); err != nil {
 		return UserTokens{}, err
 	}
 
-	return uc.createSession(ctx, id, req.CompanyID)
+	return uc.createSession(ctx, id, companyID)
 }
 
-type UserSignInRequest struct {
+type UserSignInInput struct {
 	Email    string
 	Password string
 }
 
-func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (UserTokens, error) {
-	user, err := uc.repository.FindByCredentials(ctx, req.Email, uc.passwordHasher.Hash(req.Password))
+func (uc *UserUsecase) SignIn(ctx context.Context, input UserSignInInput) (UserTokens, error) {
+	user, err := uc.repository.GetByCredentials(ctx, input.Email, uc.passwordHasher.Hash(input.Password))
 	if err != nil {
 		return UserTokens{}, err
 	}
@@ -73,43 +69,58 @@ func (uc *userUsecase) SignIn(ctx context.Context, req UserSignInRequest) (UserT
 	return uc.createSession(ctx, user.ID, user.CompanyID)
 }
 
-func (uc *userUsecase) Confirm(ctx context.Context, id string) error {
-	return uc.repository.Confirm(ctx, id)
+func (uc *UserUsecase) GetByID(ctx context.Context, id string) (domain.User, error) {
+	userID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return uc.repository.GetByID(ctx, userID)
 }
 
-func (uc *userUsecase) RefreshTokens(ctx context.Context, refreshToken string) (UserTokens, error) {
-	var expiresAt time.Time
-	var userID string
-	var companyID string
+type UserUpdateInput struct {
+	Name      string
+	Email     string
+	Password  string
+	CompanyID string
+}
 
-	if err := uc.redisDB.HGet(ctx, refreshToken, "expires_at").Scan(&expiresAt); err != nil {
-		return UserTokens{}, err
-	}
-	if time.Now().After(expiresAt) {
-		uc.redisDB.HDel(ctx, refreshToken, "user_id", "company_id", "expires_at")
-		return UserTokens{}, domain.ErrUnauthorized
-	}
-
-	if err := uc.redisDB.HGet(ctx, refreshToken, "user_id").Scan(&userID); err != nil {
-		return UserTokens{}, err
+func (uc *UserUsecase) Update(ctx context.Context, id string, input UserUpdateInput) error {
+	userID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
 	}
 
-	if err := uc.redisDB.HGet(ctx, refreshToken, "company_id").Scan(&companyID); err != nil {
-		return UserTokens{}, err
+	companyID, err := primitive.ObjectIDFromHex(input.CompanyID)
+	if err != nil {
+		return err
 	}
 
-	accessToken, err := uc.tokensManager.NewAccessToken(auth.Claims{
-		UserID:    userID,
+	return uc.repository.Update(ctx, domain.User{
+		ID:        userID,
+		Name:      input.Name,
+		Email:     input.Email,
+		Password:  uc.passwordHasher.Hash(input.Password),
 		CompanyID: companyID,
 	})
+}
+
+func (uc *UserUsecase) Delete(ctx context.Context, id string) error {
+	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return UserTokens{}, err
+		return err
 	}
 
-	return UserTokens{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}, nil
+	return uc.repository.Delete(ctx, userID)
+}
+
+func (uc *UserUsecase) Confirm(ctx context.Context, id string) error {
+	userID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	return uc.repository.Confirm(ctx, userID)
 }
 
 type UserTokens struct {
@@ -117,10 +128,19 @@ type UserTokens struct {
 	RefreshToken string
 }
 
-func (uc *userUsecase) createSession(ctx context.Context, userID, companyID string) (UserTokens, error) {
+func (uc *UserUsecase) Refresh(ctx context.Context, refreshToken string) (UserTokens, error) {
+	user, err := uc.repository.GetByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return UserTokens{}, err
+	}
+
+	return uc.createSession(ctx, user.ID, user.CompanyID)
+}
+
+func (uc *UserUsecase) createSession(ctx context.Context, userID, companyID primitive.ObjectID) (UserTokens, error) {
 	accessToken, err := uc.tokensManager.NewAccessToken(auth.Claims{
-		UserID:    userID,
-		CompanyID: companyID,
+		UserID:    userID.Hex(),
+		CompanyID: companyID.Hex(),
 	})
 	if err != nil {
 		return UserTokens{}, err
@@ -131,7 +151,12 @@ func (uc *userUsecase) createSession(ctx context.Context, userID, companyID stri
 		return UserTokens{}, err
 	}
 
-	uc.redisDB.HSet(ctx, refreshToken, "user_id", userID, "company_id", companyID, "expires_at", time.Now().Add(uc.refreshTokenTTL))
+	if err := uc.repository.SetSession(ctx, userID, domain.UserSession{
+		RefreshToken: refreshToken,
+		ExpiresAt:    time.Now().Add(uc.refreshTokenTTL),
+	}); err != nil {
+		return UserTokens{}, err
+	}
 
 	return UserTokens{
 		AccessToken:  accessToken,

@@ -4,60 +4,101 @@ import (
 	"context"
 	"github.com/syncrepair/backend/internal/domain"
 	"github.com/syncrepair/backend/internal/repository"
-	"github.com/syncrepair/backend/internal/util"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type ClientUsecase interface {
-	Create(ctx context.Context, req ClientCreateRequest) (string, error)
-	Update(ctx context.Context, req ClientUpdateRequest) error
-	Delete(ctx context.Context, id string) error
-}
-
-type clientUsecase struct {
+type ClientUsecase struct {
 	repository repository.ClientRepository
 }
 
-func NewClientUsecase(repository repository.ClientRepository) ClientUsecase {
-	return &clientUsecase{
+func NewClientUsecase(repository repository.ClientRepository) *ClientUsecase {
+	return &ClientUsecase{
 		repository: repository,
 	}
 }
 
-type ClientCreateRequest struct {
+type ClientCreateInput struct {
 	Name        string
 	PhoneNumber string
+	Vehicles    []domain.ClientVehicle
+	Settings    domain.ClientSettings
 	CompanyID   string
 }
 
-func (uc *clientUsecase) Create(ctx context.Context, req ClientCreateRequest) (string, error) {
-	id := util.GenerateID()
+func (uc *ClientUsecase) Create(ctx context.Context, input ClientCreateInput) (string, error) {
+	id := primitive.NewObjectID()
+
+	companyID, err := primitive.ObjectIDFromHex(input.CompanyID)
+	if err != nil {
+		return "", err
+	}
 
 	if err := uc.repository.Create(ctx, domain.Client{
 		ID:          id,
-		Name:        req.Name,
-		PhoneNumber: req.PhoneNumber,
-		CompanyID:   req.CompanyID,
+		Name:        input.Name,
+		PhoneNumber: input.PhoneNumber,
+		Vehicles:    input.Vehicles,
+		Settings:    input.Settings,
+		CompanyID:   companyID,
 	}); err != nil {
 		return "", err
 	}
 
-	return id, nil
+	return id.Hex(), nil
 }
 
-type ClientUpdateRequest struct {
-	ID          string
+func (uc *ClientUsecase) GetAll(ctx context.Context, companyID string) ([]domain.Client, error) {
+	id, err := primitive.ObjectIDFromHex(companyID)
+	if err != nil {
+		return nil, err
+	}
+
+	return uc.repository.GetAll(ctx, id)
+}
+
+func (uc *ClientUsecase) GetByID(ctx context.Context, id string) (domain.Client, error) {
+	clientID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return domain.Client{}, err
+	}
+
+	return uc.repository.GetByID(ctx, clientID)
+}
+
+type ClientUpdateInput struct {
 	Name        string
 	PhoneNumber string
+	Vehicles    []domain.ClientVehicle
+	Settings    domain.ClientSettings
+	CompanyID   string
 }
 
-func (uc *clientUsecase) Update(ctx context.Context, req ClientUpdateRequest) error {
+func (uc *ClientUsecase) Update(ctx context.Context, id string, input ClientUpdateInput) error {
+	clientID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	companyID, err := primitive.ObjectIDFromHex(input.CompanyID)
+	if err != nil {
+		return err
+	}
+
 	return uc.repository.Update(ctx, domain.Client{
-		ID:          req.ID,
-		Name:        req.Name,
-		PhoneNumber: req.PhoneNumber,
+		ID:          clientID,
+		Name:        input.Name,
+		PhoneNumber: input.PhoneNumber,
+		Vehicles:    input.Vehicles,
+		Settings:    input.Settings,
+		CompanyID:   companyID,
 	})
 }
 
-func (uc *clientUsecase) Delete(ctx context.Context, id string) error {
-	return uc.repository.Delete(ctx, id)
+func (uc *ClientUsecase) Delete(ctx context.Context, id string) error {
+	clientID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	return uc.repository.Delete(ctx, clientID)
 }

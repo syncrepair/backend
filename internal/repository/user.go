@@ -2,49 +2,41 @@ package repository
 
 import (
 	"context"
-	"errors"
-	"github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/syncrepair/backend/internal/domain"
-	"github.com/syncrepair/backend/internal/util"
+	"github.com/syncrepair/backend/pkg/database/mongodb"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user domain.User) error
-	FindByCredentials(ctx context.Context, email string, password string) (domain.User, error)
-	Confirm(ctx context.Context, id string) error
+	GetByID(ctx context.Context, id primitive.ObjectID) (domain.User, error)
+	GetByCredentials(ctx context.Context, email string, password string) (domain.User, error)
+	GetByRefreshToken(ctx context.Context, refreshToken string) (domain.User, error)
+	Update(ctx context.Context, user domain.User) error
+	Delete(ctx context.Context, id primitive.ObjectID) error
+
+	Confirm(ctx context.Context, id primitive.ObjectID) error
+	SetSession(ctx context.Context, id primitive.ObjectID, session domain.UserSession) error
 }
 
 type userRepository struct {
-	db        *pgxpool.Pool
-	sb        squirrel.StatementBuilderType
-	tableName string
+	db *mongo.Collection
 }
 
-func NewUserRepository(db *pgxpool.Pool, sb squirrel.StatementBuilderType, tableName string) UserRepository {
+func NewUserRepository(db *mongo.Database) UserRepository {
 	return &userRepository{
-		db:        db,
-		sb:        sb,
-		tableName: tableName,
+		db: db.Collection(usersCollectionName),
 	}
 }
 
 func (r *userRepository) Create(ctx context.Context, user domain.User) error {
-	sql, args, err := r.sb.Insert(r.tableName).
-		Columns("id", "name", "email", "password", "company_id", "is_confirmed").
-		Values(user.ID, user.Name, user.Email, user.Password, user.CompanyID, user.IsConfirmed).
-		ToSql()
+	_, err := r.db.InsertOne(ctx, user)
 	if err != nil {
-		return err
-	}
-
-	_, err = r.db.Exec(ctx, sql, args...)
-	if err != nil {
-		if errors.Is(util.ParsePgErr(err), util.PgErrAlreadyExists) {
+		if mongodb.IsDuplicate(err) {
 			return domain.ErrUserAlreadyExists
-		}
-		if errors.Is(util.ParsePgErr(err), util.PgErrForeignKey) {
-			return domain.ErrCompanyNotFound
 		}
 
 		return err
@@ -53,22 +45,10 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 	return nil
 }
 
-func (r *userRepository) FindByCredentials(ctx context.Context, email string, password string) (domain.User, error) {
-	sql, args, err := r.sb.Select("id", "name", "email", "password", "company_id", "is_confirmed").
-		From(r.tableName).
-		Where(squirrel.And{
-			squirrel.Eq{"email": email},
-			squirrel.Eq{"password": password},
-		}).
-		ToSql()
-	if err != nil {
-		return domain.User{}, err
-	}
-
+func (r *userRepository) GetByID(ctx context.Context, id primitive.ObjectID) (domain.User, error) {
 	var user domain.User
-
-	if err = r.db.QueryRow(ctx, sql, args...).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CompanyID, &user.IsConfirmed); err != nil {
-		if errors.Is(util.ParsePgErr(err), util.PgErrNotFound) {
+	if err := r.db.FindOne(ctx, bson.M{"_id": id}).Decode(&user); err != nil {
+		if mongodb.IsNotFound(err) {
 			return domain.User{}, domain.ErrUserNotFound
 		}
 
@@ -78,19 +58,62 @@ func (r *userRepository) FindByCredentials(ctx context.Context, email string, pa
 	return user, nil
 }
 
-func (r *userRepository) Confirm(ctx context.Context, id string) error {
-	sql, args, err := r.sb.Update(r.tableName).
-		Set("is_confirmed", true).
-		Where(squirrel.Eq{"id": id}).
-		ToSql()
-	if err != nil {
-		return err
+func (r *userRepository) GetByCredentials(ctx context.Context, email string, password string) (domain.User, error) {
+	var user domain.User
+	if err := r.db.FindOne(ctx, bson.M{"email": email, "password": password}).Decode(&user); err != nil {
+		if mongodb.IsNotFound(err) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
+
+		return domain.User{}, err
 	}
 
-	_, err = r.db.Exec(ctx, sql, args...)
+	return user, nil
+}
+
+func (r *userRepository) GetByRefreshToken(ctx context.Context, refreshToken string) (domain.User, error) {
+	var user domain.User
+	if err := r.db.FindOne(ctx, bson.M{
+		"session.refresh_token": refreshToken,
+		"session.expires_at":    bson.M{"$gt": time.Now()},
+	}).Decode(&user); err != nil {
+		if mongodb.IsNotFound(err) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
+
+		return domain.User{}, err
+	}
+
+	return user, nil
+}
+
+func (r *userRepository) Update(ctx context.Context, user domain.User) error {
+	_, err := r.db.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{"$set": bson.M{
+		"name":     user.Name,
+		"email":    user.Email,
+		"password": user.Password,
+	}})
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (r *userRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
+	_, err := r.db.DeleteOne(ctx, bson.M{"_id": id})
+
+	return err
+}
+
+func (r *userRepository) Confirm(ctx context.Context, id primitive.ObjectID) error {
+	_, err := r.db.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"is_confirmed": true}})
+
+	return err
+}
+
+func (r *userRepository) SetSession(ctx context.Context, id primitive.ObjectID, session domain.UserSession) error {
+	_, err := r.db.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"session": session}})
+
+	return err
 }

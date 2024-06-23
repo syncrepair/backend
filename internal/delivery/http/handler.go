@@ -3,9 +3,10 @@ package http
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
+	echoSwagger "github.com/swaggo/echo-swagger"
+	_ "github.com/syncrepair/backend/docs"
 	"github.com/syncrepair/backend/internal/usecase"
 	"github.com/syncrepair/backend/pkg/auth"
-	"net/http"
 )
 
 type Handler struct {
@@ -15,11 +16,11 @@ type Handler struct {
 }
 
 type Usecases struct {
-	UserUsecase    usecase.UserUsecase
-	CompanyUsecase usecase.CompanyUsecase
-	ServiceUsecase usecase.ServiceUsecase
-	ClientUsecase  usecase.ClientUsecase
-	VehicleUsecase usecase.VehicleUsecase
+	User    *usecase.UserUsecase
+	Company *usecase.CompanyUsecase
+	Service *usecase.ServiceUsecase
+	Client  *usecase.ClientUsecase
+	Vehicle *usecase.VehicleUsecase
 }
 
 func NewHandler(log zerolog.Logger, tokensManager auth.TokensManager, usecases Usecases) *Handler {
@@ -33,11 +34,9 @@ func NewHandler(log zerolog.Logger, tokensManager auth.TokensManager, usecases U
 func (h *Handler) Init() *echo.Echo {
 	r := echo.New()
 
-	r.Use(h.requestLoggingMiddleware())
+	r.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	r.GET("/ping", func(c echo.Context) error {
-		return c.String(http.StatusOK, "pong")
-	})
+	r.Use(h.requestLoggingMiddleware())
 
 	h.initAPI(r)
 
@@ -51,6 +50,5 @@ func (h *Handler) initAPI(router *echo.Echo) {
 		h.initCompanyRoutes(api)
 		h.initServiceRoutes(api)
 		h.initClientRoutes(api)
-		h.initVehicleRoutes(api)
 	}
 }

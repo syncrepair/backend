@@ -1,7 +1,10 @@
-all: mod-tidy run
+all: swag mod-tidy run
 
 mod-tidy:
 	go mod tidy
 
 run:
-	go run cmd/main.go
+	go run cmd/app/main.go
+
+swag:
+	swag init -g cmd/app/main.go

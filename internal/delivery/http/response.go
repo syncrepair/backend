@@ -7,42 +7,42 @@ import (
 	"net/http"
 )
 
-type successResponse struct {
-	Status string      `json:"status"`
-	Data   interface{} `json:"data"`
+type dataResponse struct {
+	Data  interface{} `json:"data"`
+	Count uint        `json:"count"`
 }
 
-type errorResponse struct {
-	Status  string `json:"status"`
+type idResponse struct {
+	ID string `json:"id"`
+}
+
+type response struct {
 	Message string `json:"message"`
 }
 
-func SuccessResponse(ctx echo.Context, statusCode int, data ...interface{}) error {
-	res := successResponse{
-		Status: "success",
+func newResponse(ctx echo.Context, statusCode int, data ...interface{}) error {
+	if len(data) == 0 {
+		return ctx.JSON(statusCode, response{
+			Message: http.StatusText(statusCode),
+		})
 	}
 
-	if len(data) == 1 {
-		res.Data = data[0]
-	} else if len(data) > 1 {
-		res.Data = data
+	switch data[0].(type) {
+	case error:
+		err := data[0].(error)
+		msg := err.Error()
+
+		if statusCode >= http.StatusInternalServerError {
+			msg = domain.ErrInternalServer.Error()
+			log.Error().
+				Err(err).
+				Msg("server error")
+		}
+
+		return ctx.JSON(statusCode, response{
+			Message: msg,
+		})
+	default:
+		return ctx.JSON(statusCode, data[0])
 	}
-
-	return ctx.JSON(statusCode, res)
-}
-
-func ErrorResponse(ctx echo.Context, statusCode int, err error) error {
-	res := errorResponse{
-		Status:  "error",
-		Message: err.Error(),
-	}
-
-	if statusCode >= http.StatusInternalServerError {
-		res.Message = domain.ErrInternalServer.Error()
-		log.Error().
-			Err(err).
-			Msg("server error")
-	}
-
-	return ctx.JSON(statusCode, res)
 }

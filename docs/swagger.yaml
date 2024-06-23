@@ -1,0 +1,1065 @@
+basePath: /api
+definitions:
+  domain.Client:
+    properties:
+      company_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone_number:
+        type: string
+      settings:
+        $ref: '#/definitions/domain.ClientSettings'
+      vehicles:
+        items:
+          $ref: '#/definitions/domain.ClientVehicle'
+        type: array
+    type: object
+  domain.ClientSettings:
+    properties:
+      discount:
+        type: integer
+    type: object
+  domain.ClientVehicle:
+    properties:
+      distance:
+        type: integer
+      id:
+        type: string
+      make:
+        type: string
+      model:
+        type: string
+      plate_number:
+        type: string
+      vin:
+        type: string
+      year:
+        type: integer
+    type: object
+  domain.Company:
+    properties:
+      id:
+        type: string
+      location:
+        $ref: '#/definitions/domain.CompanyLocation'
+      logo:
+        type: string
+      name:
+        type: string
+      settings:
+        $ref: '#/definitions/domain.CompanySettings'
+    type: object
+  domain.CompanyLocation:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+    type: object
+  domain.CompanySettings:
+    properties:
+      close_time:
+        type: string
+      currency:
+        type: string
+      measurement_unit:
+        $ref: '#/definitions/domain.MeasurementUnit'
+      open_time:
+        type: string
+    type: object
+  domain.MeasurementUnit:
+    enum:
+    - km
+    - mi
+    type: string
+    x-enum-varnames:
+    - KilometresMeasurementUnit
+    - MilesMeasurementUnit
+  domain.Service:
+    properties:
+      company_id:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  domain.User:
+    properties:
+      company_id:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_confirmed:
+        type: boolean
+      name:
+        type: string
+      password:
+        type: string
+      session:
+        $ref: '#/definitions/domain.UserSession'
+    type: object
+  domain.UserSession:
+    properties:
+      expires_at:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  http.clientCreateRequest:
+    properties:
+      name:
+        type: string
+      phone_number:
+        type: string
+      settings:
+        $ref: '#/definitions/domain.ClientSettings'
+      vehicles:
+        items:
+          $ref: '#/definitions/domain.ClientVehicle'
+        type: array
+    type: object
+  http.clientUpdateRequest:
+    properties:
+      name:
+        type: string
+      phone_number:
+        type: string
+      settings:
+        $ref: '#/definitions/domain.ClientSettings'
+      vehicles:
+        items:
+          $ref: '#/definitions/domain.ClientVehicle'
+        type: array
+    type: object
+  http.clientVehicleCreateRequest:
+    properties:
+      distance:
+        type: integer
+      make:
+        type: string
+      model:
+        type: string
+      plate_number:
+        type: string
+      vin:
+        type: string
+      year:
+        type: integer
+    type: object
+  http.clientVehicleUpdateRequest:
+    properties:
+      distance:
+        type: integer
+      make:
+        type: string
+      model:
+        type: string
+      plate_number:
+        type: string
+      vin:
+        type: string
+      year:
+        type: integer
+    type: object
+  http.companyCreateRequest:
+    properties:
+      location:
+        $ref: '#/definitions/domain.CompanyLocation'
+      logo:
+        type: string
+      name:
+        type: string
+      settings:
+        $ref: '#/definitions/domain.CompanySettings'
+    type: object
+  http.companyUpdateRequest:
+    properties:
+      location:
+        $ref: '#/definitions/domain.CompanyLocation'
+      logo:
+        type: string
+      name:
+        type: string
+      settings:
+        $ref: '#/definitions/domain.CompanySettings'
+    type: object
+  http.idResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  http.response:
+    properties:
+      message:
+        type: string
+    type: object
+  http.serviceCreateRequest:
+    properties:
+      description:
+        type: string
+      duration:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  http.serviceUpdateRequest:
+    properties:
+      description:
+        type: string
+      duration:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  http.userRefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  http.userRefreshResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  http.userSignInRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  http.userSignInResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  http.userSignUpRequest:
+    properties:
+      company_id:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  http.userSignUpResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  http.userUpdateRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:80
+info:
+  contact: {}
+  title: Syncrepair API
+  version: "1.0"
+paths:
+  /clients:
+    get:
+      consumes:
+      - application/json
+      description: Get all clients
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Client'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Get all
+      tags:
+      - clients
+    post:
+      consumes:
+      - application/json
+      description: Create client
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.clientCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.idResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Create
+      tags:
+      - clients
+  /clients/{clientID}/vehicles:
+    get:
+      consumes:
+      - application/json
+      description: Get all client's vehicles
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ClientVehicle'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Get all
+      tags:
+      - clients
+    post:
+      consumes:
+      - application/json
+      description: Create vehicle for client
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.clientVehicleCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.idResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Create vehicle
+      tags:
+      - clients
+  /clients/{clientID}/vehicles/{vehicleID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete client's vehicle by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: string
+      - description: Vehicle ID
+        in: path
+        name: vehicleID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Delete vehicle by ID
+      tags:
+      - clients
+    get:
+      consumes:
+      - application/json
+      description: Get client's vehicle by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: string
+      - description: Vehicle ID
+        in: path
+        name: vehicleID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ClientVehicle'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Get by ID
+      tags:
+      - clients
+    put:
+      consumes:
+      - application/json
+      description: Update client's vehicle by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: clientID
+        required: true
+        type: string
+      - description: Vehicle ID
+        in: path
+        name: vehicleID
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.clientVehicleUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Update vehicle by ID
+      tags:
+      - clients
+  /clients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Delete
+      tags:
+      - clients
+    get:
+      consumes:
+      - application/json
+      description: Get client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Client'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Get by ID
+      tags:
+      - clients
+    put:
+      consumes:
+      - application/json
+      description: Update client by ID
+      parameters:
+      - description: Client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.clientUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Update
+      tags:
+      - clients
+  /companies:
+    delete:
+      consumes:
+      - application/json
+      description: Delete company
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Delete
+      tags:
+      - companies
+    get:
+      consumes:
+      - application/json
+      description: Get company
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Company'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Get
+      tags:
+      - companies
+    post:
+      consumes:
+      - application/json
+      description: Create new company
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.companyCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.idResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      summary: Create
+      tags:
+      - companies
+    put:
+      consumes:
+      - application/json
+      description: Update company
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.companyUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Update
+      tags:
+      - companies
+  /services:
+    get:
+      consumes:
+      - application/json
+      description: Get all services
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Service'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Get all
+      tags:
+      - services
+    post:
+      consumes:
+      - application/json
+      description: Create service
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.serviceCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.idResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Create
+      tags:
+      - services
+    put:
+      consumes:
+      - application/json
+      description: Update service by ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.serviceUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Update
+      tags:
+      - services
+  /services/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete service by ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Delete
+      tags:
+      - services
+    get:
+      consumes:
+      - application/json
+      description: Get service by ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Service'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Get by ID
+      tags:
+      - services
+  /users:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Delete
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Get
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update user
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.userUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      security:
+      - UserAuth: []
+      summary: Update
+      tags:
+      - users
+  /users/confirm/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Confirm user account
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      summary: Confirm
+      tags:
+      - users
+  /users/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh user tokens
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.userRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.userRefreshResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      summary: Refresh tokens
+      tags:
+      - users
+  /users/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Sign in to user account
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.userSignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.userSignInResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      summary: Sign in
+      tags:
+      - users
+  /users/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Create new user account
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.userSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/http.userSignUpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.response'
+      summary: Sign up
+      tags:
+      - users
+securityDefinitions:
+  UserAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

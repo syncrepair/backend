@@ -1,9 +1,19 @@
 package domain
 
+import (
+	"errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+var (
+	ErrServiceNotFound = errors.New("service not found")
+)
+
 type Service struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	CompanyID   string  `json:"company_id"`
+	ID          primitive.ObjectID `json:"id" bson:"_id"`
+	Name        string             `json:"name" bson:"name"`
+	Description string             `json:"description" bson:"description"`
+	Duration    uint               `json:"duration" bson:"duration"`
+	Price       float64            `json:"price" bson:"price"`
+	CompanyID   primitive.ObjectID `json:"company_id" bson:"company_id"`
 }

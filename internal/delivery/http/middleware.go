@@ -33,7 +33,7 @@ func (h *Handler) authMiddleware() echo.MiddlewareFunc {
 		return func(ctx echo.Context) error {
 			header := ctx.Request().Header.Get("Authorization")
 			if header == "" {
-				return ErrorResponse(ctx, http.StatusUnauthorized, domain.ErrUnauthorized)
+				return newResponse(ctx, http.StatusUnauthorized, domain.ErrUnauthorized)
 			}
 
 			headerParts := strings.Split(header, " ")
@@ -41,7 +41,7 @@ func (h *Handler) authMiddleware() echo.MiddlewareFunc {
 
 			claims, err := h.tokensManager.GetAccessTokenClaims(token)
 			if err != nil {
-				return ErrorResponse(ctx, http.StatusUnauthorized, domain.ErrUnauthorized)
+				return newResponse(ctx, http.StatusUnauthorized, domain.ErrUnauthorized)
 			}
 
 			ctx.Set("userID", claims.UserID)
