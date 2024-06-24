@@ -83,8 +83,6 @@ func (h *Handler) clientCreate(ctx echo.Context) error {
 func (h *Handler) clientGetAll(ctx echo.Context) error {
 	clients, err := h.usecases.Client.GetAll(ctx.Request().Context(), getCompanyIDFromCtx(ctx))
 	if err != nil {
-		// TODO: error handling when no rows
-
 		return newResponse(ctx, http.StatusInternalServerError, err)
 	}
 
